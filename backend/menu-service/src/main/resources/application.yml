@@ -1,0 +1,37 @@
+server:
+  port: ${MENU_SERVICE_PORT:8082}
+
+spring:
+  application:
+    name: menu-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/lumiere_menu}
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=300s  # 5-minute TTL
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: ${JWT_SECRET:lumiere-cafe-super-secret-key-must-be-at-least-64-characters-long-for-hs512!!}
+  access-token-expiry-ms: 900000
+  refresh-token-expiry-ms: 604800000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    com.lumiere.menu: DEBUG

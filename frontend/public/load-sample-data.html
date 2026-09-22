@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Load Sample Data - Lumière Café</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 { color: #333; margin-bottom: 10px; }
+    .subtitle { color: #666; margin-bottom: 30px; }
+    .btn {
+      background: #8B4513;
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px 5px;
+      transition: all 0.3s;
+    }
+    .btn:hover {
+      background: #654321;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .success { color: green; font-size: 20px; margin: 20px 0; }
+    .error { color: red; font-size: 16px; margin: 20px 0; }
+    .info {
+      background: #e3f2fd;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 36px;
+      font-weight: bold;
+      color: #8B4513;
+    }
+    .stat-label {
+      color: #666;
+      margin-top: 5px;
+    }
+    .progress {
+      width: 100%;
+      height: 30px;
+      background: #f0f0f0;
+      border-radius: 15px;
+      overflow: hidden;
+      margin: 20px 0;
+      display: none;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #8B4513, #654321);
+      width: 0%;
+      transition: width 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎯 Load Sample Data</h1>
+    <div class="subtitle">Populate your café with realistic demo data</div>
+    
+    <div class="info">
+      <strong>📦 What will be loaded:</strong>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-number" id="customerCount">500+</div>
+          <div class="stat-label">Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="menuCount">100</div>
+          <div class="stat-label">Menu Items</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="orderCount">750+</div>
+          <div class="stat-label">Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">8</div>
+          <div class="stat-label">Gallery Images</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">4</div>
+          <div class="stat-label">Team Members</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">2</div>
+          <div class="stat-label">Active Coupons</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">Full</div>
+          <div class="stat-label">Contact Info</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">Complete</div>
+          <div class="stat-label">About Section</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress" id="progress">
+      <div class="progress-bar" id="progressBar">0%</div>
+    </div>
+    
+    <button class="btn" onclick="loadSampleData()" id="loadBtn">
+      📥 Load Sample Data
+    </button>
+    <button class="btn" onclick="clearData()">
+      🗑️ Clear All Data
+    </button>
+    <button class="btn" onclick="goHome()">
+      🏠 Go to Homepage
+    </button>
+    
+    <div id="message"></div>
+  </div>
+
+  <script src="./sampleDataFull.json" type="application/json" id="sampleDataScript"></script>
+  <script>
+    async function loadSampleData() {
+      const loadBtn = document.getElementById('loadBtn');
+      const message = document.getElementById('message');
+      const progress = document.getElementById('progress');
+      const progressBar = document.getElementById('progressBar');
+      
+      loadBtn.disabled = true;
+      message.innerHTML = '<p>⏳ Loading sample data...</p>';
+      progress.style.display = 'block';
+      
+      try {
+        // Fetch the generated data
+        const response = await fetch('./sampleDataFull.json');
+        const sampleData = await response.json();
+        
+        progressBar.style.width = '30%';
+        progressBar.textContent = '30%';
+        
+        message.innerHTML += '<p>✓ Data loaded from file</p>';
+        
+        // Get existing data structure or create new
+        let cafeData = localStorage.getItem('cafe_data');
+        let data;
+        
+        if (cafeData) {
+          data = JSON.parse(cafeData);
+        } else {
+          data = {
+            users: [],
+            menu: [],
+            orders: [],
+            reservations: [],
+            coupons: [],
+            gallery: [],
+            reviews: [],
+            features: [],
+            team: [],
+            about: [],
+            contact: []
+          };
+        }
+        
+        progressBar.style.width = '50%';
+        progressBar.textContent = '50%';
+        
+        // Add staff users - multiple users for each role
+        const staffUsers = [
+          // Demo User (Quick Login)
+          {
+            id: 'demo001',
+            table_type: 'user',
+            name: 'Demo User',
+            email: 'demo@demo.com',
+            username: 'demo',
+            password: 'demo',
+            phone: '+91-98765-43210',
+            role: 'customer',
+            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
+            address_street: '456 Demo Street',
+            address_city: 'Mumbai',
+            address_state: 'Maharashtra',
+            address_zipcode: '400001',
+            address_country: 'India',
+            favorite_items: [],
+            permissions: ['view_dashboard', 'view_orders', 'view_menu', 'view_reservations'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          
+          // Admin (1)
+          {
+            id: 'admin001',
+            table_type: 'user',
+            name: 'Admin User',
+            email: 'admin@admin.com',
+            username: 'admin',
+            password: 'admin',
+            phone: '+91-98765-43211',
+            role: 'admin',
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
+            address_street: '123 Admin Avenue',
+            address_city: 'Mumbai',
+            address_state: 'Maharashtra',
+            address_zipcode: '400001',
+            address_country: 'India',
+            favorite_items: [],
+            permissions: ['all'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          
+          // Managers (3)
+          {
+            id: 'manager001',
+            table_type: 'user',
+            name: 'Sarah Manager',
+            email: 'manager@lumierecafe.com',
+            password: 'Manager@123',
+            phone: '+1-555-0103',
+            role: 'manager',
+            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
+            address_street: '321 Management St',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10004',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['users.view', 'users.edit', 'orders.view', 'orders.edit', 'menu.view', 'menu.edit', 'reservations.view', 'reservations.edit', 'coupons.view', 'coupons.edit', 'analytics.view'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'manager002',
+            table_type: 'user',
+            name: 'Michael Brooks',
+            email: 'michael.brooks@lumierecafe.com',
+            password: 'Manager@123',
+            phone: '+1-555-0203',
+            role: 'manager',
+            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
+            address_street: '322 Management St',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10004',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['users.view', 'users.edit', 'orders.view', 'orders.edit', 'menu.view', 'menu.edit', 'reservations.view', 'reservations.edit', 'coupons.view', 'coupons.edit', 'analytics.view'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'manager003',
+            table_type: 'user',
+            name: 'Lisa Anderson',
+            email: 'lisa.anderson@lumierecafe.com',
+            password: 'Manager@123',
+            phone: '+1-555-0303',
+            role: 'manager',
+            avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100',
+            address_street: '323 Management St',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10004',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['users.view', 'users.edit', 'orders.view', 'orders.edit', 'menu.view', 'menu.edit', 'reservations.view', 'reservations.edit', 'coupons.view', 'coupons.edit', 'analytics.view'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          
+          // Chefs (4)
+          {
+            id: 'chef001',
+            table_type: 'user',
+            name: 'Chef Marco',
+            email: 'chef@lumierecafe.com',
+            password: 'Chef@123',
+            phone: '+1-555-0101',
+            role: 'chef',
+            avatar: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=100',
+            address_street: '456 Kitchen Blvd',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10002',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.edit', 'menu.view'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'chef002',
+            table_type: 'user',
+            name: 'Chef Antonio',
+            email: 'antonio.chef@lumierecafe.com',
+            password: 'Chef@123',
+            phone: '+1-555-0201',
+            role: 'chef',
+            avatar: 'https://images.unsplash.com/photo-1583394293214-28ded15ee548?w=100',
+            address_street: '457 Kitchen Blvd',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10002',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.edit', 'menu.view'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'chef003',
+            table_type: 'user',
+            name: 'Chef Marie',
+            email: 'marie.chef@lumierecafe.com',
+            password: 'Chef@123',
+            phone: '+1-555-0301',
+            role: 'chef',
+            avatar: 'https://images.unsplash.com/photo-1595273670150-bd0c3c392e46?w=100',
+            address_street: '458 Kitchen Blvd',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10002',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.edit', 'menu.view'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'chef004',
+            table_type: 'user',
+            name: 'Chef David',
+            email: 'david.chef@lumierecafe.com',
+            password: 'Chef@123',
+            phone: '+1-555-0401',
+            role: 'chef',
+            avatar: 'https://images.unsplash.com/photo-1581349485608-9469926a8e5e?w=100',
+            address_street: '459 Kitchen Blvd',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10002',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.edit', 'menu.view'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          
+          // Waiters (6)
+          {
+            id: 'waiter001',
+            table_type: 'user',
+            name: 'Alex Server',
+            email: 'waiter@lumierecafe.com',
+            password: 'Waiter@123',
+            phone: '+1-555-0102',
+            role: 'waiter',
+            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+            address_street: '789 Service St',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10003',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.create', 'reservations.view', 'reservations.edit'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'waiter002',
+            table_type: 'user',
+            name: 'Jessica Williams',
+            email: 'jessica.williams@lumierecafe.com',
+            password: 'Waiter@123',
+            phone: '+1-555-0202',
+            role: 'waiter',
+            avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100',
+            address_street: '790 Service St',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10003',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.create', 'reservations.view', 'reservations.edit'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'waiter003',
+            table_type: 'user',
+            name: 'Tom Martinez',
+            email: 'tom.martinez@lumierecafe.com',
+            password: 'Waiter@123',
+            phone: '+1-555-0302',
+            role: 'waiter',
+            avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100',
+            address_street: '791 Service St',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10003',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.create', 'reservations.view', 'reservations.edit'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'waiter004',
+            table_type: 'user',
+            name: 'Rachel Green',
+            email: 'rachel.green@lumierecafe.com',
+            password: 'Waiter@123',
+            phone: '+1-555-0402',
+            role: 'waiter',
+            avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100',
+            address_street: '792 Service St',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10003',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.create', 'reservations.view', 'reservations.edit'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'waiter005',
+            table_type: 'user',
+            name: 'Chris Taylor',
+            email: 'chris.taylor@lumierecafe.com',
+            password: 'Waiter@123',
+            phone: '+1-555-0502',
+            role: 'waiter',
+            avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100',
+            address_street: '793 Service St',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10003',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.create', 'reservations.view', 'reservations.edit'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'waiter006',
+            table_type: 'user',
+            name: 'Nina Patel',
+            email: 'nina.patel@lumierecafe.com',
+            password: 'Waiter@123',
+            phone: '+1-555-0602',
+            role: 'waiter',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
+            address_street: '794 Service St',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10003',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['orders.view', 'orders.create', 'reservations.view', 'reservations.edit'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          
+          // Content Editors (2)
+          {
+            id: 'editor001',
+            table_type: 'user',
+            name: 'Emma Editor',
+            email: 'editor@lumierecafe.com',
+            password: 'Editor@123',
+            phone: '+1-555-0104',
+            role: 'content_editor',
+            avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+            address_street: '654 Content Ln',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10005',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['menu.view', 'menu.edit', 'content.view', 'content.edit', 'gallery.view', 'gallery.edit'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'editor002',
+            table_type: 'user',
+            name: 'Ryan Cooper',
+            email: 'ryan.cooper@lumierecafe.com',
+            password: 'Editor@123',
+            phone: '+1-555-0204',
+            role: 'content_editor',
+            avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100',
+            address_street: '655 Content Ln',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10005',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['menu.view', 'menu.edit', 'content.view', 'content.edit', 'gallery.view', 'gallery.edit'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          
+          // Viewers (2)
+          {
+            id: 'viewer001',
+            table_type: 'user',
+            name: 'John Viewer',
+            email: 'viewer@lumierecafe.com',
+            password: 'Viewer@123',
+            phone: '+1-555-0105',
+            role: 'viewer',
+            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
+            address_street: '987 View Rd',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10006',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['analytics.view', 'reports.view'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'viewer002',
+            table_type: 'user',
+            name: 'Sophie Martin',
+            email: 'sophie.martin@lumierecafe.com',
+            password: 'Viewer@123',
+            phone: '+1-555-0205',
+            role: 'viewer',
+            avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100',
+            address_street: '988 View Rd',
+            address_city: 'New York',
+            address_state: 'NY',
+            address_zipcode: '10006',
+            address_country: 'USA',
+            favorite_items: [],
+            permissions: ['analytics.view', 'reports.view'],
+            refresh_token: '',
+            is_active: true,
+            email_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ];
+        
+        // Merge data - Load EVERYTHING from sample data
+        data.users = [...staffUsers, ...sampleData.customers];
+        data.menu = sampleData.menuItems;
+        data.orders = sampleData.orders;
+        data.reservations = sampleData.reservations || [];
+        data.coupons = sampleData.coupons || [];
+        data.gallery = sampleData.gallery || [];
+        data.reviews = sampleData.reviews || [];
+        data.features = sampleData.features || [];
+        data.team = sampleData.team || [];
+        data.about = sampleData.about || [];
+        data.contact = sampleData.contact || [];
+        
+        // Add sample Today's Offers
+        data.todaysOffers = [
+          {
+            id: 'offer001',
+            title: 'Morning Coffee Special',
+            description: 'Start your day with our signature brew! Get any coffee with a fresh croissant at a special price.',
+            discount: '20% OFF',
+            image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400',
+            validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            isActive: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'offer002',
+            title: 'Lunch Combo Deal',
+            description: 'Enjoy any main course with a side and drink. Perfect for a quick lunch break!',
+            discount: '₹150 OFF',
+            image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400',
+            validUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+            isActive: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'offer003',
+            title: 'Weekend Brunch Bonanza',
+            description: 'Bring your family for our special weekend brunch menu. Kids eat free!',
+            discount: 'Kids Eat Free',
+            image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+            validUntil: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+            isActive: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'offer004',
+            title: 'Happy Hour Desserts',
+            description: 'All desserts at half price between 3 PM - 5 PM daily. Sweet treats await!',
+            discount: '50% OFF',
+            image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400',
+            validUntil: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
+            isActive: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ];
+        
+        progressBar.style.width = '75%';
+        progressBar.textContent = '75%';
+        
+        message.innerHTML += '<p>✓ Merging data...</p>';
+        
+        // Save to localStorage
+        localStorage.setItem('cafe_data', JSON.stringify(data));
+        
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+        
+        message.innerHTML = `
+          <div class="success">
+            <h2>✅ Sample Data Loaded Successfully!</h2>
+            <p><strong>Loaded:</strong></p>
+            <ul>
+              <li>👥 ${data.users.length} users (including ${staffUsers.length} staff)</li>
+              <li>🍕 ${data.menu.length} menu items</li>
+              <li>📦 ${data.orders.length} orders</li>
+              <li>📅 ${data.reservations.length} reservations</li>
+              <li>🎫 ${data.coupons.length} coupons</li>
+              <li>🖼️ ${data.gallery.length} gallery images</li>
+              <li>⭐ ${data.reviews.length} reviews</li>
+              <li>✨ ${data.features.length} features</li>
+              <li>👨‍🍳 ${data.team.length} team members</li>
+              <li>🎁 ${data.todaysOffers.length} today's offers</li>
+              <li>📖 About & Contact sections loaded</li>
+            </ul>
+            <p>Redirecting to homepage in 3 seconds...</p>
+          </div>
+        `;
+        
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 3000);
+        
+      } catch (error) {
+        message.innerHTML = `
+          <div class="error">
+            <h3>❌ Error loading data</h3>
+            <p>${error.message}</p>
+            <p>Make sure sampleDataFull.json exists in the same directory.</p>
+          </div>
+        `;
+        loadBtn.disabled = false;
+        progress.style.display = 'none';
+      }
+    }
+    
+    function clearData() {
+      if (!confirm('Are you sure? This will delete ALL data!')) return;
+      
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      document.getElementById('message').innerHTML = '<div class="success">✅ All data cleared! Reload the page to reinitialize.</div>';
+    }
+    
+    function goHome() {
+      window.location.href = '/';
+    }
+  </script>
+</body>
+</html>

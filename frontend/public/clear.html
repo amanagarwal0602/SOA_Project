@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clear Data</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 500px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .btn {
+      background: #8B4513;
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s;
+    }
+    .btn:hover {
+      background: #654321;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .success {
+      color: green;
+      font-size: 24px;
+      margin: 20px 0;
+    }
+    .info {
+      background: #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    pre {
+      text-align: left;
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔧 Clear & Reset Data</h1>
+    
+    <div class="info">
+      <strong>Current Status:</strong><br>
+      <span id="status">Checking...</span>
+    </div>
+
+    <div id="summary"></div>
+    
+    <button class="btn" onclick="showData()">📋 Show Data</button>
+    <button class="btn" onclick="clearAll()">🗑️ Clear Data (Keep Admin)</button>
+    
+    <div id="message"></div>
+  </div>
+
+  <script>
+    function checkStatus() {
+      const data = localStorage.getItem('cafe_data');
+      const auth = localStorage.getItem('lumiere_auth');
+      
+      let status = '';
+      if (data) {
+        const size = (data.length / 1024).toFixed(2);
+        status += `📦 cafe_data: ${size} KB<br>`;
+      } else {
+        status += '📦 cafe_data: EMPTY<br>';
+      }
+      
+      if (auth) {
+        status += '🔐 Auth data: EXISTS<br>';
+      } else {
+        status += '🔐 Auth data: EMPTY<br>';
+      }
+      
+      document.getElementById('status').innerHTML = status;
+    }
+
+    function showData() {
+      const data = localStorage.getItem('cafe_data');
+      const summary = document.getElementById('summary');
+      
+      if (!data) {
+        summary.innerHTML = '<div class="info">❌ No data found</div>';
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(data);
+        const info = {
+          users: parsed.users?.length || 0,
+          menu: parsed.menu?.length || 0,
+          orders: parsed.orders?.length || 0,
+          about_title: parsed.about?.[0]?.title || 'NOT SET',
+          features: parsed.features?.length || 0,
+          team: parsed.team?.length || 0
+        };
+        
+        summary.innerHTML = '<h3>📊 Data Summary:</h3><pre>' + JSON.stringify(info, null, 2) + '</pre>';
+        
+        // Show admin credentials
+        const admin = parsed.users?.find(u => u.role === 'admin');
+        if (admin) {
+          summary.innerHTML += '<div class="info"><strong>Admin Login:</strong><br>Email: ' + admin.email + '<br>Password: ' + admin.password + '</div>';
+        }
+      } catch (e) {
+        summary.innerHTML = '<div style="color: red;">Error: ' + e.message + '</div>';
+      }
+    }
+
+    function clearAll() {
+      if (!confirm('⚠️ This will clear all data except the admin user. Continue?')) {
+        return;
+      }
+      
+      const message = document.getElementById('message');
+      message.innerHTML = '<p>🔄 Clearing data...</p>';
+      
+      try {
+        // Get existing data
+        const data = localStorage.getItem('cafe_data');
+        
+        if (data) {
+          const parsed = JSON.parse(data);
+          
+          // Keep only admin user
+          const adminUser = parsed.users?.find(u => u.role === 'admin' && u.email === 'admin@lumierecafe.com');
+          
+          if (adminUser) {
+            // Reset data structure with only admin
+            const resetData = {
+              users: [adminUser],
+              menu: [],
+              orders: [],
+              reservations: [],
+              gallery: [],
+              reviews: [],
+              hero: [],
+              about: [],
+              features: [],
+              team: [],
+              contactInfo: [],
+              siteSettings: [],
+              coupons: [],
+              roles: [],
+              permissions: []
+            };
+            
+            localStorage.setItem('cafe_data', JSON.stringify(resetData));
+            message.innerHTML = '<p class="success">✅ Data cleared! Only admin user retained.</p>';
+          } else {
+            // No admin found, clear everything
+            localStorage.clear();
+            message.innerHTML = '<p class="success">✅ ALL DATA CLEARED! (No admin found)</p>';
+          }
+        } else {
+          localStorage.clear();
+          message.innerHTML = '<p class="success">✅ ALL DATA CLEARED!</p>';
+        }
+        
+        // Clear auth tokens
+        localStorage.removeItem('lumiere_auth');
+        localStorage.removeItem('accessToken');
+        sessionStorage.clear();
+        
+        message.innerHTML += '<p>Redirecting to homepage in 2 seconds...</p>';
+        
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+      } catch (e) {
+        message.innerHTML = '<p style="color: red;">❌ Error: ' + e.message + '</p>';
+      }
+    }
+
+    // Check on load
+    checkStatus();
+  </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+server:
+  port: ${CAFE_SERVICE_PORT:8084}
+
+spring:
+  application:
+    name: cafe-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/lumiere_cafe}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: ${JWT_SECRET:lumiere-cafe-super-secret-key-must-be-at-least-64-characters-long-for-hs512!!}
+  access-token-expiry-ms: 900000
+  refresh-token-expiry-ms: 604800000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    com.lumiere.cafe: DEBUG

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Credentials - Lumière Café</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 1000px;
+      width: 100%;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 40px;
+      font-size: 16px;
+    }
+    .warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin-bottom: 30px;
+      border-radius: 5px;
+      color: #856404;
+    }
+    .warning strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+    .role-card {
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 25px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .role-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .role-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+    }
+    .role-card.admin::before {
+      background: linear-gradient(90deg, #dc2626, #ef4444);
+    }
+    .role-card.manager::before {
+      background: linear-gradient(90deg, #7c3aed, #8b5cf6);
+    }
+    .role-card.chef::before {
+      background: linear-gradient(90deg, #ea580c, #f97316);
+    }
+    .role-card.waiter::before {
+      background: linear-gradient(90deg, #2563eb, #3b82f6);
+    }
+    .role-card.content_editor::before {
+      background: linear-gradient(90deg, #059669, #10b981);
+    }
+    .role-card.viewer::before {
+      background: linear-gradient(90deg, #6b7280, #9ca3af);
+    }
+    .role-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .role-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .role-card.admin .role-icon { background: #fee2e2; }
+    .role-card.manager .role-icon { background: #ede9fe; }
+    .role-card.chef .role-icon { background: #ffedd5; }
+    .role-card.waiter .role-icon { background: #dbeafe; }
+    .role-card.content_editor .role-icon { background: #d1fae5; }
+    .role-card.viewer .role-icon { background: #f3f4f6; }
+    .role-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #333;
+      text-transform: capitalize;
+    }
+    .credential-item {
+      margin-bottom: 15px;
+    }
+    .credential-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .credential-value {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #333;
+      word-break: break-all;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .copy-btn {
+      background: #8B4513;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      background: #654321;
+      transform: scale(1.05);
+    }
+    .copy-btn:active {
+      transform: scale(0.95);
+    }
+    .footer-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary {
+      background: #8B4513;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #654321;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+    .btn-secondary:hover {
+      background: #d0d0d0;
+    }
+    @media (max-width: 768px) {
+      .container {
+        padding: 25px;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔑 Hardcoded Login Credentials</h1>
+    <p class="subtitle">These credentials always work, even after clearing all data</p>
+    
+    <div class="warning">
+      <strong>⚠️ Important Notice</strong>
+      These are hardcoded credentials that cannot be deleted. They will work even if localStorage is cleared.
+      Perfect for template demonstration and admin access.
+    </div>
+
+    <div class="cards-grid">
+      <!-- Admin Card - HARDCODED LOGIN -->
+      <div class="role-card admin">
+        <div class="role-header">
+          <div class="role-icon">👑</div>
+          <div class="role-title">Admin</div>
+        </div>
+        <div class="credential-item">
+          <div class="credential-label">Email / Username</div>
+          <div class="credential-value">
+            <span>admin@admin.com or admin</span>
+            <button class="copy-btn" onclick="copyText('admin@admin.com')">Copy</button>
+          </div>
+        </div>
+        <div class="credential-item">
+          <div class="credential-label">Password</div>
+          <div class="credential-value">
+            <span>admin</span>
+            <button class="copy-btn" onclick="copyText('admin')">Copy</button>
+          </div>
+        </div>
+        <div style="margin-top: 15px; padding: 10px; background: #d1fae5; border-radius: 8px; font-size: 13px; color: #059669;">
+          ✓ Hardcoded - Always works, even after clearing data
+        </div>
+      </div>
+
+      <!-- Demo User Card - HARDCODED LOGIN -->
+      <div class="role-card viewer">
+        <div class="role-header">
+          <div class="role-icon">👁️</div>
+          <div class="role-title">Demo Customer</div>
+        </div>
+        <div class="credential-item">
+          <div class="credential-label">Email / Username</div>
+          <div class="credential-value">
+            <span>demo@demo.com or demo</span>
+            <button class="copy-btn" onclick="copyText('demo@demo.com')">Copy</button>
+          </div>
+        </div>
+        <div class="credential-item">
+          <div class="credential-label">Password</div>
+          <div class="credential-value">
+            <span>demo</span>
+            <button class="copy-btn" onclick="copyText('demo')">Copy</button>
+          </div>
+        </div>
+        <div style="margin-top: 15px; padding: 10px; background: #d1fae5; border-radius: 8px; font-size: 13px; color: #059669;">
+          ✓ Hardcoded - Always works, even after clearing data
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-buttons">
+      <a href="/" class="btn btn-primary">🏠 Go to Homepage</a>
+      <a href="/load-sample-data.html" class="btn btn-secondary">📥 Load Sample Data</a>
+      <button class="btn btn-secondary" onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+
+  <script>
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        // Create temporary toast notification
+        const toast = document.createElement('div');
+        toast.textContent = '✓ Copied!';
+        toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; z-index: 9999; animation: slideIn 0.3s ease;';
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }, 2000);
+      }).catch(err => {
+        alert('Failed to copy: ' + err);
+      });
+    }
+
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

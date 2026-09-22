@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Force Reset localStorage</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #8B4513; }
+    button {
+      background: #8B4513;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover { background: #654321; }
+    .success { color: green; font-weight: bold; margin-top: 20px; }
+    .info { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Force Reset localStorage</h1>
+    
+    <div class="info">
+      <strong>Current localStorage size:</strong> <span id="size">Calculating...</span><br>
+      <strong>Has data:</strong> <span id="hasData">Checking...</span>
+    </div>
+
+    <button onclick="showCurrentData()">📋 Show Current Data</button>
+    <button onclick="forceReset()">🗑️ Force Clear & Reinitialize</button>
+    <button onclick="goHome()">🏠 Go to Homepage</button>
+    
+    <div id="result"></div>
+    <div id="dataDisplay"></div>
+  </div>
+
+  <script>
+    function checkData() {
+      const data = localStorage.getItem('cafe_data');
+      document.getElementById('hasData').textContent = data ? 'YES' : 'NO';
+      document.getElementById('size').textContent = data ? (data.length / 1024).toFixed(2) + ' KB' : '0 KB';
+    }
+
+    function showCurrentData() {
+      const data = localStorage.getItem('cafe_data');
+      const dataDisplay = document.getElementById('dataDisplay');
+      
+      if (!data) {
+        dataDisplay.innerHTML = '<div class="info">No data found in localStorage</div>';
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(data);
+        const summary = {
+          users: parsed.users?.length || 0,
+          customers: parsed.customers?.length || 0,
+          menu: parsed.menu?.length || 0,
+          menuItems: parsed.menuItems?.length || 0,
+          orders: parsed.orders?.length || 0,
+          reservations: parsed.reservations?.length || 0,
+          gallery: parsed.gallery?.length || 0,
+          reviews: parsed.reviews?.length || 0,
+          coupons: parsed.coupons?.length || 0,
+          features: parsed.features?.length || 0,
+          team: parsed.team?.length || 0,
+          about_title: parsed.about?.[0]?.title || 'NOT FOUND',
+          about_has_hero_title: parsed.about?.[0]?.hero_title ? 'YES' : 'NO'
+        };
+        
+        dataDisplay.innerHTML = '<h3>Data Summary:</h3><pre>' + JSON.stringify(summary, null, 2) + '</pre>';
+      } catch (e) {
+        dataDisplay.innerHTML = '<div style="color: red;">Error parsing data: ' + e.message + '</div>';
+      }
+    }
+
+    function forceReset() {
+      const result = document.getElementById('result');
+      result.innerHTML = '<p>Clearing localStorage...</p>';
+      
+      // Clear everything
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      result.innerHTML += '<p class="success">✓ localStorage cleared!</p>';
+      result.innerHTML += '<p>Reloading page in 2 seconds...</p>';
+      
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    }
+
+    function goHome() {
+      window.location.href = '/';
+    }
+
+    // Check on load
+    checkData();
+  </script>
+</body>
+</html>

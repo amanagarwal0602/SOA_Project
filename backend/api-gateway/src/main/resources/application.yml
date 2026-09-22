@@ -1,0 +1,155 @@
+server:
+  port: ${GATEWAY_PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+
+  # ── CORS (configured here; not in individual services) ─────────────────────
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "${ALLOWED_ORIGIN:http://localhost:3000}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            exposedHeaders:
+              - X-Correlation-Id
+              - Authorization
+            allowCredentials: true
+            maxAge: 3600
+
+      # ── Routes ─────────────────────────────────────────────────────────────
+      # All URIs use lb:// (load-balanced via Eureka) — NO hardcoded addresses.
+      routes:
+
+        # ── Auth → user-service ──────────────────────────────────────────────
+        - id: auth-route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**
+
+        # ── User + Staff → user-service ──────────────────────────────────────
+        - id: user-route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**, /api/staff/**
+
+        # ── Menu + Today's Offers → menu-service ─────────────────────────────
+        - id: menu-route
+          uri: lb://menu-service
+          predicates:
+            - Path=/api/menu/**, /api/todays-offers/**
+
+        # ── Orders + Cart + Kitchen + Coupons → order-service ────────────────
+        - id: order-route
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**, /api/cart/**, /api/kitchen/**, /api/coupons/**
+
+        # ── Café CMS / Reservations / Gallery / Reviews → cafe-service ───────
+        - id: cafe-route
+          uri: lb://cafe-service
+          predicates:
+            - Path=/api/reservations/**, /api/gallery/**, /api/reviews/**,
+                   /api/hero/**, /api/about/**, /api/features/**, /api/team/**,
+                   /api/contact-info/**, /api/site-settings/**, /api/seo/**,
+                   /api/contact/**
+
+        # ── /api/admin/** rewrites (legacy api.js calls) ──────────────────────
+        - id: admin-orders-route
+          uri: lb://order-service
+          predicates:
+            - Path=/api/admin/orders/**
+          filters:
+            - RewritePath=/api/admin/orders/(?<segment>.*), /api/orders/${segment}
+
+        - id: admin-reservations-route
+          uri: lb://cafe-service
+          predicates:
+            - Path=/api/admin/reservations/**
+          filters:
+            - RewritePath=/api/admin/reservations/(?<segment>.*), /api/reservations/${segment}
+
+        - id: admin-users-route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/admin/users/**
+          filters:
+            - RewritePath=/api/admin/users/(?<segment>.*), /api/users/${segment}
+
+        - id: admin-reviews-route
+          uri: lb://cafe-service
+          predicates:
+            - Path=/api/admin/reviews/**
+          filters:
+            - RewritePath=/api/admin/reviews/(?<segment>.*), /api/reviews/${segment}
+
+# ── Eureka ────────────────────────────────────────────────────────────────────
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# ── JWT ───────────────────────────────────────────────────────────────────────
+jwt:
+  # Must be ≥ 64 ASCII chars for HS512. Override via JWT_SECRET env var.
+  secret: ${JWT_SECRET:lumiere-cafe-super-secret-key-must-be-at-least-64-characters-long-for-hs512!!}
+  access-token-expiry-ms: 900000    # 15 min
+  refresh-token-expiry-ms: 604800000 # 7 days
+
+# ── App config ────────────────────────────────────────────────────────────────
+app:
+  cors:
+    allowed-origin: ${ALLOWED_ORIGIN:http://localhost:3000}
+  rate-limit:
+    auth:
+      capacity: 20
+      refill-tokens: 20
+      refill-period-minutes: 1
+
+# ── Actuator ──────────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# ── OpenAPI aggregation ───────────────────────────────────────────────────────
+springdoc:
+  swagger-ui:
+    urls:
+      - name: user-service
+        url: /user-service/v3/api-docs
+      - name: menu-service
+        url: /menu-service/v3/api-docs
+      - name: order-service
+        url: /order-service/v3/api-docs
+      - name: cafe-service
+        url: /cafe-service/v3/api-docs
+  api-docs:
+    enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.lumiere.gateway: DEBUG
