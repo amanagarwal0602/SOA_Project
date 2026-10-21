@@ -1,6 +1,7 @@
 package com.lumiere.soa.controller;
 
 import com.lumiere.soa.model.Review;
+import com.lumiere.soa.repository.MenuItemRepository;
 import com.lumiere.soa.repository.ReviewRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +15,27 @@ import java.util.Optional;
 public class ReviewController {
 
     private final ReviewRepository reviewRepository;
+    private final MenuItemRepository menuItemRepository;
 
-    public ReviewController(ReviewRepository reviewRepository) {
+    public ReviewController(ReviewRepository reviewRepository, MenuItemRepository menuItemRepository) {
         this.reviewRepository = reviewRepository;
+        this.menuItemRepository = menuItemRepository;
+    }
+
+    private void updateMenuItemRating(String menuItemId) {
+        if (menuItemId == null || menuItemId.isBlank()) return;
+        List<Review> reviews = reviewRepository.findByMenuItemId(menuItemId);
+        if (reviews.isEmpty()) return;
+        double sum = 0;
+        for (Review r : reviews) {
+            sum += r.getRating();
+        }
+        double avg = Math.round((sum / reviews.size()) * 10.0) / 10.0;
+        menuItemRepository.findById(menuItemId).ifPresent(item -> {
+            item.setRating(avg);
+            item.setRatingCount(reviews.size());
+            menuItemRepository.save(item);
+        });
     }
 
     @GetMapping("/api/reviews")
@@ -66,6 +85,7 @@ public class ReviewController {
                 .build();
 
         Review saved = reviewRepository.save(review);
+        updateMenuItemRating(menuItemId);
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
@@ -138,7 +158,9 @@ public class ReviewController {
 
     @DeleteMapping("/api/reviews/{id}")
     public ResponseEntity<?> deleteReview(@PathVariable String id) {
+        Optional<Review> opt = reviewRepository.findById(id);
         reviewRepository.deleteById(id);
+        opt.ifPresent(r -> updateMenuItemRating(r.getMenuItemId()));
         return ResponseEntity.ok(Map.of("data", Map.of("id", id, "deleted", true)));
     }
 }

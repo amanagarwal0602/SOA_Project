@@ -77,6 +77,10 @@ public class OrderController {
 
         String deliveryAddress = (String) (orderData.get("delivery_address") != null ? orderData.get("delivery_address") : orderData.get("deliveryAddress"));
 
+        String utrNumber = (String) (orderData.get("utrNumber") != null ? orderData.get("utrNumber") :
+                (orderData.get("utr_number") != null ? orderData.get("utr_number") :
+                (orderData.get("transactionId") != null ? orderData.get("transactionId") : orderData.get("transaction_id"))));
+
         Order order = Order.builder()
                 .id(id)
                 .orderNumber(orderNumber)
@@ -88,7 +92,9 @@ public class OrderController {
                 .totalPrice(totalPrice)
                 .deliveryAddress(deliveryAddress)
                 .paymentMethod((String) (orderData.get("payment_method") != null ? orderData.get("payment_method") : orderData.getOrDefault("paymentMethod", "card")))
-                .paymentStatus((String) (orderData.get("payment_status") != null ? orderData.get("payment_status") : orderData.getOrDefault("paymentStatus", "paid")))
+                .paymentStatus((String) (orderData.get("payment_status") != null ? orderData.get("payment_status") : orderData.getOrDefault("paymentStatus", "pending")))
+                .utrNumber(utrNumber)
+                .transactionId(utrNumber)
                 .status((String) orderData.getOrDefault("status", "pending"))
                 .specialInstructions((String) (orderData.get("special_instructions") != null ? orderData.get("special_instructions") : orderData.get("specialInstructions")))
                 .build();
@@ -111,9 +117,27 @@ public class OrderController {
         if (updates.containsKey("payment_status") || updates.containsKey("paymentStatus")) {
             order.setPaymentStatus((String) updates.getOrDefault("payment_status", updates.get("paymentStatus")));
         }
+        if (updates.containsKey("utrNumber") || updates.containsKey("utr_number")) {
+            String utr = (String) updates.getOrDefault("utrNumber", updates.get("utr_number"));
+            order.setUtrNumber(utr);
+            order.setTransactionId(utr);
+        }
 
         Order saved = orderRepository.save(order);
         return ResponseEntity.ok(Map.of("data", saved));
+    }
+
+    @PutMapping({"/api/orders/{id}/verify-payment", "/api/admin/orders/{id}/verify-payment"})
+    public ResponseEntity<?> verifyPayment(@PathVariable String id) {
+        Optional<Order> orderOpt = orderRepository.findById(id);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Order order = orderOpt.get();
+        order.setPaymentStatus("paid");
+        Order saved = orderRepository.save(order);
+        return ResponseEntity.ok(Map.of("data", saved, "success", true));
     }
 
     @PutMapping("/api/orders/{id}/complete")

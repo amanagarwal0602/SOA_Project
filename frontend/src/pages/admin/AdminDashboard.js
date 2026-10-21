@@ -41,14 +41,21 @@ const AdminDashboard = () => {
     return isNaN(d.getTime()) ? null : d;
   };
 
-  // Calculate today's sales
+  const isPaymentVerified = (order) => {
+    if (!order || order.status === 'cancelled') return false;
+    const pStatus = (order.paymentStatus || order.payment_status || '').toLowerCase();
+    // Only count as verified revenue if explicitly paid/completed or if marked delivered/completed by admin
+    return pStatus === 'paid' || pStatus === 'completed' || order.status === 'completed' || order.status === 'delivered';
+  };
+
+  // Calculate today's sales (verified payments only)
   const getTodaySales = () => {
     const today = new Date().toISOString().split('T')[0];
     const todayOrders = orders.filter(order => {
       const d = getOrderDate(order);
       if (!d) return false;
       const orderDate = d.toISOString().split('T')[0];
-      return orderDate === today && order.status !== 'cancelled';
+      return orderDate === today && isPaymentVerified(order);
     });
     
     return {
@@ -57,7 +64,7 @@ const AdminDashboard = () => {
     };
   };
 
-  // Calculate monthly sales
+  // Calculate monthly sales (verified payments only)
   const getMonthlySales = () => {
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -68,7 +75,7 @@ const AdminDashboard = () => {
       if (!d) return false;
       return d.getMonth() === currentMonth && 
              d.getFullYear() === currentYear &&
-             order.status !== 'cancelled';
+             isPaymentVerified(order);
     });
     
     return {
@@ -77,7 +84,7 @@ const AdminDashboard = () => {
     };
   };
 
-  // Calculate date-wise sales
+  // Calculate date-wise sales (verified payments only)
   const getDateWiseSales = () => {
     const start = new Date(dateFilter.startDate);
     const end = new Date(dateFilter.endDate);
@@ -86,7 +93,7 @@ const AdminDashboard = () => {
     const filteredOrders = orders.filter(order => {
       const d = getOrderDate(order);
       if (!d) return false;
-      return d >= start && d <= end && order.status !== 'cancelled';
+      return d >= start && d <= end && isPaymentVerified(order);
     });
     
     // Group by date
@@ -111,9 +118,9 @@ const AdminDashboard = () => {
   const getProductWiseSales = () => {
     const productSales = {};
 
-    // 1. Accumulate from real order items
+    // 1. Accumulate from real verified order items
     orders.forEach(order => {
-      if (order.status === 'cancelled') return;
+      if (!isPaymentVerified(order)) return;
       let items = [];
       if (Array.isArray(order.items)) {
         items = order.items;
@@ -165,7 +172,7 @@ const AdminDashboard = () => {
     const customerSales = {};
     
     orders.forEach(order => {
-      if (order.status === 'cancelled') return;
+      if (!isPaymentVerified(order)) return;
       
       const key = order.customerEmail || order.customer_email || 'Guest';
       if (!customerSales[key]) {
@@ -177,7 +184,7 @@ const AdminDashboard = () => {
         };
       }
       customerSales[key].orderCount++;
-      customerSales[key].totalSpent += parseFloat(order.total) || 0;
+      customerSales[key].totalSpent += parseFloat(order.total || order.totalPrice) || 0;
     });
     
     return Object.values(customerSales)
@@ -186,12 +193,16 @@ const AdminDashboard = () => {
 
   // Get overall stats
   const getOverallStats = () => {
-    const completedOrders = orders.filter(o => o.status !== 'cancelled');
-    const totalRevenue = completedOrders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
-    const avgOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+    const paidOrders = orders.filter(o => isPaymentVerified(o));
+    const pendingOrders = orders.filter(o => !isPaymentVerified(o) && o.status !== 'cancelled');
+    const pendingTotal = pendingOrders.reduce((sum, o) => sum + (parseFloat(o.total || o.totalPrice) || 0), 0);
+    const totalRevenue = paidOrders.reduce((sum, order) => sum + (parseFloat(order.total || order.totalPrice) || 0), 0);
+    const avgOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
     
     return {
-      totalOrders: completedOrders.length,
+      totalOrders: paidOrders.length,
+      pendingOrdersCount: pendingOrders.length,
+      pendingOrdersTotal: pendingTotal,
       totalRevenue,
       avgOrderValue,
       totalProducts: menuItems.length,
@@ -223,6 +234,29 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Sales Dashboard</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">Complete overview of your restaurant sales and analytics</p>
       </div>
+
+      {/* Alert for orders awaiting payment/UTR verification */}
+      {overallStats.pendingOrdersCount > 0 && (
+        <div className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">⚠️</span>
+            <div>
+              <h4 className="font-bold text-amber-900 dark:text-amber-200">
+                {overallStats.pendingOrdersCount} Order{overallStats.pendingOrdersCount > 1 ? 's' : ''} Awaiting Payment / UTR Verification
+              </h4>
+              <p className="text-sm text-amber-800 dark:text-amber-300">
+                ₹{overallStats.pendingOrdersTotal.toFixed(2)} in pending customer payments will be added to revenue and profits once verified.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/admin/orders"
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-semibold whitespace-nowrap shadow transition"
+          >
+            Review & Verify Payments →
+          </Link>
+        </div>
+      )}
 
       {/* Quick Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

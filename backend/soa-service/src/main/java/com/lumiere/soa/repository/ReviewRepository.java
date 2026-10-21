@@ -11,4 +11,5 @@ public interface ReviewRepository extends JpaRepository<Review, String> {
     List<Review> findByIsPublishedTrueOrderByCreatedAtDesc();
     List<Review> findByShowOnHomepageTrueAndIsPublishedTrue();
     List<Review> findAllByOrderByCreatedAtDesc();
+    List<Review> findByMenuItemId(String menuItemId);
 }

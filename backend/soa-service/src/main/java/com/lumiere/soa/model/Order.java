@@ -60,7 +60,13 @@ public class Order {
 
     @JsonProperty("payment_status")
     @Builder.Default
-    private String paymentStatus = "paid";
+    private String paymentStatus = "pending";
+
+    @JsonProperty("utr_number")
+    private String utrNumber;
+
+    @JsonProperty("transaction_id")
+    private String transactionId;
 
     @Builder.Default
     private String status = "pending";
@@ -114,6 +120,54 @@ public class Order {
     @JsonProperty("totalPrice")
     public double getTotalPriceAlias() {
         return totalPrice;
+    }
+
+    @JsonProperty("amount")
+    public double getAmountAlias() {
+        return totalPrice;
+    }
+
+    @JsonProperty("amount")
+    public void setAmountAlias(double amount) {
+        if (this.totalPrice == 0.0) {
+            this.totalPrice = amount;
+        }
+    }
+
+    @JsonProperty("utrNumber")
+    public String getUtrNumberAlias() {
+        return utrNumber != null ? utrNumber : transactionId;
+    }
+
+    @JsonProperty("utrNumber")
+    public void setUtrNumberAlias(String utr) {
+        this.utrNumber = utr;
+        if (this.transactionId == null) {
+            this.transactionId = utr;
+        }
+    }
+
+    @JsonProperty("transactionId")
+    public String getTransactionIdAlias() {
+        return transactionId != null ? transactionId : utrNumber;
+    }
+
+    @JsonProperty("transactionId")
+    public void setTransactionIdAlias(String txId) {
+        this.transactionId = txId;
+        if (this.utrNumber == null) {
+            this.utrNumber = txId;
+        }
+    }
+
+    @JsonProperty("paymentStatus")
+    public String getPaymentStatusAlias() {
+        return paymentStatus;
+    }
+
+    @JsonProperty("paymentStatus")
+    public void setPaymentStatusAlias(String pStatus) {
+        this.paymentStatus = pStatus;
     }
 
     @JsonProperty("customerEmail")

@@ -63,7 +63,7 @@ const Footer = () => {
             onEdit={() => handleEdit('footer-about', about)}
           >
             <div>
-              <h3 className="text-2xl font-serif font-bold mb-4">{about?.title || 'Lumière Café'}</h3>
+              <h3 className="text-2xl font-serif font-bold mb-4">{settings?.siteName || about?.title || 'Lumière Café'}</h3>
               <p className="text-gray-200 dark:text-gray-400 mb-4">
                 {about?.description || 'Experience the perfect blend of artisan coffee, fresh pastries, and warm hospitality in an elegant atmosphere.'}
               </p>
@@ -157,7 +157,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-400 dark:border-gray-700 mt-8 pt-8 text-center text-gray-200 dark:text-gray-400">
-          <p>{settings.footerText || `© ${currentYear} ${about?.title || 'Lumière Café'}. All rights reserved.`}</p>
+          <p>{settings.footerText || `© ${currentYear} ${settings?.siteName || about?.title || 'Lumière Café'}. All rights reserved.`}</p>
           <p className="mt-2 text-sm">
             Crafted with passion and attention to detail.
           </p>

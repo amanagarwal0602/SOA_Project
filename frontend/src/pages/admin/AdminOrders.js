@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../../services/api';
-import { FiPrinter, FiEye, FiX, FiCalendar, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiPrinter, FiEye, FiX, FiCalendar, FiChevronDown, FiChevronUp, FiCheckCircle } from 'react-icons/fi';
+import { useSiteSettings } from '../../hooks/useSiteSettings';
 import { toast } from 'react-toastify';
 
 const AdminOrders = () => {
+  const { settings } = useSiteSettings();
     // Export orders as CSV
     const handleExportCSV = () => {
       if (!orders || orders.length === 0) return;
@@ -81,6 +83,16 @@ const AdminOrders = () => {
       fetchOrders();
     } catch (error) {
       toast.error('Failed to update order');
+    }
+  };
+
+  const verifyPayment = async (orderId) => {
+    try {
+      await api.put(`/orders/${orderId}/verify-payment`);
+      toast.success('✓ Payment verified! Added to revenues.', { autoClose: 2000 });
+      fetchOrders();
+    } catch (error) {
+      toast.error('Failed to verify payment');
     }
   };
 
@@ -367,12 +379,38 @@ const AdminOrders = () => {
                                   minute: '2-digit'
                                 }) : 'Time unknown'}
                               </p>
+                              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                                <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 font-medium text-slate-700 dark:text-slate-300">
+                                  {order.paymentMethod || order.payment_method || 'UPI'}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded font-bold ${
+                                  (order.paymentStatus === 'paid' || order.payment_status === 'paid' || order.status === 'completed' || order.status === 'delivered')
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
+                                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
+                                }`}>
+                                  Payment: {(order.paymentStatus || order.payment_status || 'pending').toUpperCase()}
+                                </span>
+                                {(order.utrNumber || order.utr_number || order.transactionId || order.transaction_id) && (
+                                  <span className="text-xs px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 font-mono font-bold border border-blue-200 dark:border-blue-700">
+                                    UTR: {order.utrNumber || order.utr_number || order.transactionId || order.transaction_id}
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             <div className="text-right">
                               <p className="text-2xl font-bold text-primary-600 mb-3">
                                 ₹{(order.total || order.totalPrice || 0).toFixed(2)}
                               </p>
+                              {!(order.paymentStatus === 'paid' || order.payment_status === 'paid' || order.status === 'completed' || order.status === 'delivered') && (
+                                <button
+                                  onClick={() => verifyPayment(orderId)}
+                                  className="w-full px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 shadow-sm transition mb-2"
+                                  title="Verify and confirm customer transaction ID"
+                                >
+                                  <FiCheckCircle /> Confirm Payment
+                                </button>
+                              )}
                               <select
                                 value={order.status || 'pending'}
                                 onChange={(e) => updateStatus(orderId, e.target.value)}
@@ -455,12 +493,38 @@ const AdminOrders = () => {
                         minute: '2-digit'
                       }) : 'Date unknown'}
                     </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <span className="text-xs px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-700 font-medium text-slate-700 dark:text-slate-300">
+                        {order.paymentMethod || order.payment_method || 'UPI'}
+                      </span>
+                      <span className={`text-xs px-2.5 py-1 rounded font-bold ${
+                        (order.paymentStatus === 'paid' || order.payment_status === 'paid' || order.status === 'completed' || order.status === 'delivered')
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
+                          : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
+                      }`}>
+                        Payment: {(order.paymentStatus || order.payment_status || 'pending').toUpperCase()}
+                      </span>
+                      {(order.utrNumber || order.utr_number || order.transactionId || order.transaction_id) && (
+                        <span className="text-xs px-2.5 py-1 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 font-mono font-bold border border-blue-200 dark:border-blue-700">
+                          UTR / TxID: {order.utrNumber || order.utr_number || order.transactionId || order.transaction_id}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="text-right">
                     <p className="text-3xl font-bold text-primary-600 mb-3">
                       ₹{(order.total || order.totalPrice || 0).toFixed(2)}
                     </p>
+                    {!(order.paymentStatus === 'paid' || order.payment_status === 'paid' || order.status === 'completed' || order.status === 'delivered') && (
+                      <button
+                        onClick={() => verifyPayment(orderId)}
+                        className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold flex items-center justify-center gap-1 shadow-sm transition mb-2"
+                        title="Verify and confirm customer transaction ID"
+                      >
+                        <FiCheckCircle /> Confirm Payment
+                      </button>
+                    )}
                     <select
                       value={order.status || 'pending'}
                       onChange={(e) => updateStatus(orderId, e.target.value)}
@@ -565,10 +629,10 @@ const AdminOrders = () => {
 
               <div ref={billRef} className="p-8">
                 <div className="bill-header">
-                  <h1>Lumiere Cafe</h1>
-                  <p>Restaurant & Cafe</p>
-                  <p>123 Main Street, City, State 12345</p>
-                  <p>Phone: (123) 456-7890</p>
+                  <h1>{settings?.siteName || 'Lumière Café'}</h1>
+                  <p>Artisanal Restaurant & Cafe</p>
+                  <p>{settings?.contactInfo?.addressStreet || '123 Gourmet Boulevard'}</p>
+                  <p>Phone: {settings?.contactInfo?.phone || '+91 98765 43210'}</p>
                 </div>
 
                 <div className="bill-info">
@@ -577,6 +641,7 @@ const AdminOrders = () => {
                       <p><strong>Order Number:</strong> #{selectedOrder.dailyBillNumber}</p>
                       <p><strong>Date:</strong> {selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</p>
                       <p><strong>Order ID:</strong> {selectedOrder.orderNumber || (selectedOrder.id ? selectedOrder.id.slice(-8) : (selectedOrder._id ? selectedOrder._id.slice(-8) : 'N/A'))}</p>
+                      <p><strong>Payment Method:</strong> {selectedOrder.paymentMethod || selectedOrder.payment_method || 'UPI'}</p>
                     </div>
                     <div>
                       <p><strong>Customer:</strong> {selectedOrder.customerName || selectedOrder.userName || 'Guest'}</p>
@@ -584,22 +649,29 @@ const AdminOrders = () => {
                       <p><strong>Status:</strong> <span className={`px-2 py-1 rounded text-xs ${getStatusColor(selectedOrder.status)}`}>
                         {(selectedOrder.status || 'pending').toUpperCase()}
                       </span></p>
+                      <p><strong>Payment Status:</strong> <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                        (selectedOrder.paymentStatus === 'paid' || selectedOrder.payment_status === 'paid' || selectedOrder.status === 'completed' || selectedOrder.status === 'delivered')
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {(selectedOrder.paymentStatus || selectedOrder.payment_status || 'pending').toUpperCase()}
+                      </span></p>
                     </div>
                   </div>
-                  {(selectedOrder.utrNumber || selectedOrder.transactionId || selectedOrder.paymentProof) && (
+                  {(selectedOrder.utrNumber || selectedOrder.utr_number || selectedOrder.transactionId || selectedOrder.transaction_id || selectedOrder.paymentProof) && (
                     <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                       <h4 className="font-bold text-blue-900 dark:text-blue-100 mb-2">Payment Details (UPI)</h4>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        {selectedOrder.utrNumber && (
+                        {(selectedOrder.utrNumber || selectedOrder.utr_number) && (
                           <div>
                             <span className="text-gray-600 dark:text-gray-400">UTR Number:</span>
-                            <span className="ml-2 font-mono font-semibold text-blue-700 dark:text-blue-300">{selectedOrder.utrNumber}</span>
+                            <span className="ml-2 font-mono font-semibold text-blue-700 dark:text-blue-300">{selectedOrder.utrNumber || selectedOrder.utr_number}</span>
                           </div>
                         )}
-                        {selectedOrder.transactionId && (
+                        {(selectedOrder.transactionId || selectedOrder.transaction_id) && (
                           <div>
                             <span className="text-gray-600 dark:text-gray-400">Transaction ID:</span>
-                            <span className="ml-2 font-mono font-semibold text-blue-700 dark:text-blue-300">{selectedOrder.transactionId}</span>
+                            <span className="ml-2 font-mono font-semibold text-blue-700 dark:text-blue-300">{selectedOrder.transactionId || selectedOrder.transaction_id}</span>
                           </div>
                         )}
                         {selectedOrder.paymentProof && (
@@ -609,6 +681,19 @@ const AdminOrders = () => {
                           </div>
                         )}
                       </div>
+                      {!(selectedOrder.paymentStatus === 'paid' || selectedOrder.payment_status === 'paid' || selectedOrder.status === 'completed' || selectedOrder.status === 'delivered') && (
+                        <div className="mt-3 pt-2 border-t border-blue-200 dark:border-blue-800">
+                          <button
+                            onClick={async () => {
+                              await verifyPayment(selectedOrder.id || selectedOrder._id || selectedOrder.orderId);
+                              setSelectedOrder(prev => ({ ...prev, paymentStatus: 'paid' }));
+                            }}
+                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm font-bold flex items-center gap-1 shadow"
+                          >
+                            <FiCheckCircle /> Confirm & Approve This Payment
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

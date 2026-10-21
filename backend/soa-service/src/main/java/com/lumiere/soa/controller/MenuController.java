@@ -62,29 +62,34 @@ public class MenuController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateMenuItem(@PathVariable String id, @RequestBody MenuItem updated) {
+    public ResponseEntity<?> updateMenuItem(@PathVariable String id, @RequestBody Map<String, Object> body) {
         Optional<MenuItem> existingOpt = menuItemRepository.findById(id);
-        if (existingOpt.isEmpty()) {
-            updated.setId(id);
-            MenuItem saved = menuItemRepository.save(updated);
-            return ResponseEntity.ok(Map.of("data", saved));
-        }
+        MenuItem existing = existingOpt.orElseGet(() -> MenuItem.builder().id(id).build());
 
-        MenuItem existing = existingOpt.get();
-        if (updated.getName() != null) existing.setName(updated.getName());
-        if (updated.getDescription() != null) existing.setDescription(updated.getDescription());
-        if (updated.getPrice() > 0) existing.setPrice(updated.getPrice());
-        if (updated.getCategory() != null) existing.setCategory(updated.getCategory());
-        if (updated.getImage() != null) existing.setImage(updated.getImage());
-        existing.setAvailable(updated.isAvailable());
-        existing.setVeg(updated.isVeg());
-        existing.setShowOnHomepage(updated.isShowOnHomepage());
+        if (body.containsKey("name") && body.get("name") != null) existing.setName((String) body.get("name"));
+        if (body.containsKey("description") && body.get("description") != null) existing.setDescription((String) body.get("description"));
+        if (body.containsKey("price") && body.get("price") != null) {
+            try {
+                existing.setPrice(Double.parseDouble(body.get("price").toString()));
+            } catch (Exception ignored) {}
+        }
+        if (body.containsKey("category") && body.get("category") != null) existing.setCategory((String) body.get("category"));
+        if (body.containsKey("image") && body.get("image") != null) existing.setImage((String) body.get("image"));
+
+        if (body.containsKey("isAvailable")) existing.setAvailable(Boolean.parseBoolean(body.get("isAvailable").toString()));
+        else if (body.containsKey("is_available")) existing.setAvailable(Boolean.parseBoolean(body.get("is_available").toString()));
+
+        if (body.containsKey("isVeg")) existing.setVeg(Boolean.parseBoolean(body.get("isVeg").toString()));
+        else if (body.containsKey("is_veg")) existing.setVeg(Boolean.parseBoolean(body.get("is_veg").toString()));
+
+        if (body.containsKey("showOnHomepage")) existing.setShowOnHomepage(Boolean.parseBoolean(body.get("showOnHomepage").toString()));
+        else if (body.containsKey("show_on_homepage")) existing.setShowOnHomepage(Boolean.parseBoolean(body.get("show_on_homepage").toString()));
 
         MenuItem saved = menuItemRepository.save(existing);
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @PatchMapping("/{id}/toggle")
+    @RequestMapping(value = "/{id}/toggle", method = {RequestMethod.PATCH, RequestMethod.PUT})
     public ResponseEntity<?> toggleAvailable(@PathVariable String id) {
         Optional<MenuItem> itemOpt = menuItemRepository.findById(id);
         if (itemOpt.isPresent()) {

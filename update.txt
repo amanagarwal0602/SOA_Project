@@ -1,4 +1,4 @@
-================================================================================
+﻿================================================================================
 SOA PROJECT (24SDCS03: SOA PROGRAMMING AND MICROSERVICES) - STATUS & HANDOVER
 Generated: 21-October-2026
 File: update.txt
@@ -237,4 +237,54 @@ SKILL 12: Infrastructure Setup & Deployment of Library System
 
 4. GitHub Actions will automatically build and deploy both soa-backend and soa-frontend
    to Google Cloud Run on every future push!
+================================================================================
+8. BACKEND-DRIVEN CAFE ARCHITECTURE, UTR VERIFICATION & RATING UPDATES
+================================================================================
+In accordance with user requirements, the frontend is transformed into a pure,
+reusable presentation layer driven 100% by the Spring Boot backend database.
+
+1. Universal Backend-Driven Content & Zero Default Re-creation:
+   - DataSeeder.java: Added persistent system marker ('system_seeded_v1') in
+     CafeContentRepository. Initial cafe seeding (menu, reviews, gallery, story,
+     team, features, settings) executes only once on a fresh database.
+   - Deletions & edits by the admin are permanently honored. Deleted dishes or
+     reviews will NEVER resurrect or fall back to hardcoded frontend arrays.
+   - Navbar.js & Footer.js: Site branding now dynamically loads {settings.siteName}
+     and contact details from GET /api/content/settings with full fallback resilience.
+
+2. Customer Transaction ID / UTR Flow & Financial Integrity:
+   - Order.java: Added utrNumber, transactionId, and paymentStatus (defaults to 'pending').
+   - OrderController.java: Captures UTR / transaction IDs on POST /orders.
+   - Admin Payment Verification API: Added PUT /api/orders/{id}/verify-payment and
+     PUT /api/admin/orders/{id}/verify-payment to let admin verify and confirm transactions.
+   - Financial Integrity on AdminDashboard.js:
+     * Unverified orders (paymentStatus === 'pending') are strictly EXCLUDED from all
+       sales totals, profit metrics, date-wise revenue, and customer-wise statistics.
+     * Only verified payments (paymentStatus === 'paid') contribute to business revenue.
+     * Prominent warning banner alerts admin: "X Orders Awaiting Payment / UTR Verification"
+       with a 1-click link to review orders.
+   - AdminOrders.js:
+     * Added UTR / Transaction ID badge directly on order cards.
+     * Added status badge ('PENDING VERIFICATION' vs 'PAYMENT VERIFIED').
+     * Added 1-click "Verify & Confirm Payment" button with real-time UI refresh.
+     * Dynamic Cafe branding & contact details in printable customer receipts/bills.
+
+3. Admin Review Moderation & Real-Time Star Rating Calculations:
+   - ReviewRepository.java & ReviewController.java:
+     * Added findByMenuItemId() query.
+     * When a customer submits a review (or an admin deletes a review), the backend
+       automatically recalculates the menuItem's average rating and ratingCount,
+       updating MenuItem in the database immediately.
+   - AdminReviews.js: Added star rating filter (All, 5-star, 4-star, 3-star, 2-star, 1-star) and real-time
+     search filter by dish name, review title, or reviewer name.
+   - HomePage.js: Reviews and featured menu items strictly honor showOnHomepage === true.
+
+4. True User-Specific Favorites:
+   - UserController.java: Fixed GET /api/users/favorites so users with zero favorites
+     receive an empty list [], rather than random popular items masquerading as favorites.
+
+5. Menu Partial Update Fix:
+   - MenuController.java: Replaced whole-entity @RequestBody with granular Map<String, Object>
+     updates, ensuring quick toggles (e.g. availability) do not inadvertently reset other
+     flags such as showOnHomepage.
 ================================================================================

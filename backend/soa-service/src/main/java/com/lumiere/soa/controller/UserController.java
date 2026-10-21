@@ -187,11 +187,7 @@ public class UserController {
         if (!favIds.isEmpty()) {
             items = menuItemRepository.findAllById(favIds);
         } else {
-            // Default favorite items (popular)
-            items = menuItemRepository.findByShowOnHomepageTrue();
-            if (items.isEmpty()) {
-                items = menuItemRepository.findAll().stream().limit(3).toList();
-            }
+            items = Collections.emptyList();
         }
         return ResponseEntity.ok(Map.of("data", items));
     }

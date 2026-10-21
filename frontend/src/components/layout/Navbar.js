@@ -57,12 +57,9 @@ const Navbar = () => {
                   className="h-12 w-auto object-contain"
                 />
               ) : (
-                <>
-                  <span className="text-3xl font-serif font-bold text-primary-500 dark:text-primary-400">
-                    {settings.siteName.replace(' Café', '').replace(' Cafe', '')}
-                  </span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400 hidden sm:block">CAFÉ</span>
-                </>
+                <span className="text-2xl sm:text-3xl font-serif font-bold text-primary-500 dark:text-primary-400">
+                  {settings.siteName || 'Lumière Café'}
+                </span>
               )}
             </Link>
           </EditableWrapper>

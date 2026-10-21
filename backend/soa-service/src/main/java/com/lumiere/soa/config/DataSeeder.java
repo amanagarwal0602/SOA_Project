@@ -18,6 +18,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ReviewRepository reviewRepository;
     private final GalleryRepository galleryRepository;
     private final BookRepository bookRepository;
+    private final CafeContentRepository cafeContentRepository;
 
     public DataSeeder(UserRepository userRepository,
                       MenuItemRepository menuItemRepository,
@@ -26,7 +27,8 @@ public class DataSeeder implements CommandLineRunner {
                       TeamRepository teamRepository,
                       ReviewRepository reviewRepository,
                       GalleryRepository galleryRepository,
-                      BookRepository bookRepository) {
+                      BookRepository bookRepository,
+                      CafeContentRepository cafeContentRepository) {
         this.userRepository = userRepository;
         this.menuItemRepository = menuItemRepository;
         this.couponRepository = couponRepository;
@@ -35,10 +37,14 @@ public class DataSeeder implements CommandLineRunner {
         this.reviewRepository = reviewRepository;
         this.galleryRepository = galleryRepository;
         this.bookRepository = bookRepository;
+        this.cafeContentRepository = cafeContentRepository;
     }
 
     @Override
     public void run(String... args) {
+        if (cafeContentRepository.existsById("system_seeded_v1")) {
+            return; // Database already seeded. Preserve admin deletions, edits, and modifications.
+        }
         seedUsers();
         seedMenuItems();
         seedCoupons();
@@ -47,6 +53,10 @@ public class DataSeeder implements CommandLineRunner {
         seedReviews();
         seedGallery();
         seedBooks();
+        cafeContentRepository.save(CafeContent.builder()
+                .contentKey("system_seeded_v1")
+                .contentJson("{\"seeded\":true}")
+                .build());
     }
 
     private void seedUsers() {

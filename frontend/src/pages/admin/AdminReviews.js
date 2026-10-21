@@ -9,6 +9,8 @@ const AdminReviews = () => {
   const [selectedReview, setSelectedReview] = useState(null);
   const [responseText, setResponseText] = useState('');
   const [filter, setFilter] = useState('all');
+  const [ratingFilter, setRatingFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchReviews();
@@ -74,8 +76,16 @@ const AdminReviews = () => {
   };
 
   const filteredReviews = reviews.filter(review => {
-    if (filter === 'published') return review.isPublished;
-    if (filter === 'unpublished') return !review.isPublished;
+    if (filter === 'published' && !review.isPublished) return false;
+    if (filter === 'unpublished' && review.isPublished) return false;
+    if (ratingFilter !== 'all' && Number(review.rating) !== Number(ratingFilter)) return false;
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      const matchTitle = (review.title || '').toLowerCase().includes(q);
+      const matchComment = (review.comment || '').toLowerCase().includes(q);
+      const matchUser = (review.user?.name || review.userName || '').toLowerCase().includes(q);
+      if (!matchTitle && !matchComment && !matchUser) return false;
+    }
     return true;
   });
 
@@ -84,28 +94,65 @@ const AdminReviews = () => {
       <div className="container-custom">
         <div className="mb-8">
           <h1 className="text-4xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-2">Review Management</h1>
-          <p className="text-gray-600 dark:text-gray-400">{reviews.length} total reviews</p>
+          <p className="text-gray-600 dark:text-gray-400">{reviews.length} total reviews • Manage ratings & homepage display</p>
         </div>
 
-        <div className="mb-6 flex gap-2">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg ${filter === 'all' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
-          >
-            All ({reviews.length})
-          </button>
-          <button
-            onClick={() => setFilter('published')}
-            className={`px-4 py-2 rounded-lg ${filter === 'published' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
-          >
-            Published ({reviews.filter(r => r.isPublished).length})
-          </button>
-          <button
-            onClick={() => setFilter('unpublished')}
-            className={`px-4 py-2 rounded-lg ${filter === 'unpublished' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
-          >
-            Unpublished ({reviews.filter(r => !r.isPublished).length})
-          </button>
+        {/* Filters and Search Bar */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow mb-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* Status Filter */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition ${filter === 'all' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+              >
+                All ({reviews.length})
+              </button>
+              <button
+                onClick={() => setFilter('published')}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition ${filter === 'published' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+              >
+                Published ({reviews.filter(r => r.isPublished).length})
+              </button>
+              <button
+                onClick={() => setFilter('unpublished')}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition ${filter === 'unpublished' ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+              >
+                Unpublished ({reviews.filter(r => !r.isPublished).length})
+              </button>
+            </div>
+
+            {/* Rating Stars Filter */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mr-1">Rating:</span>
+              <button
+                onClick={() => setRatingFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${ratingFilter === 'all' ? 'bg-amber-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+              >
+                All
+              </button>
+              {[5, 4, 3, 2, 1].map(stars => (
+                <button
+                  key={stars}
+                  onClick={() => setRatingFilter(stars)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${ratingFilter === stars ? 'bg-amber-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200'}`}
+                >
+                  <span>{stars}</span>
+                  <span className="text-yellow-400">★</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search reviews by dish title, customer feedback, or reviewer name..."
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            />
+          </div>
         </div>
 
         <div className="space-y-4">

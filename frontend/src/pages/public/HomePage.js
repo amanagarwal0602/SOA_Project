@@ -39,15 +39,15 @@ const HomePage = () => {
       const feats = Array.isArray(featuresRes.data) ? featuresRes.data : (featuresRes.data?.data || []);
       setFeatures(feats.filter(f => f.isActive !== false).slice(0, 3));
       
-      // Get menu items marked for homepage display
+      // Get menu items marked by admin for homepage display
       const items = menuRes.data?.data?.items || menuRes.data?.data || [];
-      const homepageItems = items.filter(item => (item.showOnHomepage !== false && item.show_on_homepage !== false) && (item.isAvailable !== false && item.is_available !== false)).slice(0, 6);
+      const homepageItems = items.filter(item => (item.showOnHomepage === true || item.show_on_homepage === true) && (item.isAvailable !== false && item.is_available !== false));
       setMenuItems(homepageItems.length > 0 ? homepageItems : items.slice(0, 6));
       
-      // Get reviews marked for homepage display
+      // Get reviews marked by admin for homepage display
       const allReviews = reviewsRes.data?.data?.reviews || reviewsRes.data?.data || [];
-      const homepageReviews = allReviews.filter(r => (r.showOnHomepage !== false && r.show_on_homepage !== false) && (r.isPublished !== false && r.is_published !== false)).slice(0, 6);
-      setReviews(homepageReviews.length > 0 ? homepageReviews : allReviews.slice(0, 6));
+      const homepageReviews = allReviews.filter(r => (r.showOnHomepage === true || r.show_on_homepage === true) && (r.isPublished !== false && r.is_published !== false));
+      setReviews(homepageReviews);
       
       // Get today's offers
       const offers = offersRes.data?.data || offersRes.data || [];
