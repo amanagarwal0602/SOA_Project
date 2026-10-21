@@ -34,6 +34,19 @@ const AdminOrders = () => {
   const [expandedDates, setExpandedDates] = useState({});
   const billRef = useRef();
 
+  const parseItems = (items) => {
+    if (Array.isArray(items)) return items;
+    if (typeof items === 'string') {
+      try {
+        const parsed = JSON.parse(items);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  };
+
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -327,8 +340,11 @@ const AdminOrders = () => {
                   
                   {isExpanded && (
                     <div className="p-6 space-y-4 border-t border-gray-200 dark:border-gray-700">
-                      {dateOrders.map(order => (
-                        <div key={order._id} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg hover:shadow-md transition">
+                      {dateOrders.map(order => {
+                        const orderId = order.id || order._id || order.orderId;
+                        const orderItems = parseItems(order.items);
+                        return (
+                        <div key={orderId} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg hover:shadow-md transition">
                           <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
                             <div className="flex-1 min-w-[200px]">
                               <div className="flex items-center gap-3 mb-2">
@@ -359,7 +375,7 @@ const AdminOrders = () => {
                               </p>
                               <select
                                 value={order.status || 'pending'}
-                                onChange={(e) => updateStatus(order.id, e.target.value)}
+                                onChange={(e) => updateStatus(orderId, e.target.value)}
                                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium mb-2 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                               >
                                 <option value="pending">Pending</option>
@@ -381,8 +397,8 @@ const AdminOrders = () => {
                           {/* Order Items Preview */}
                           <div className="border-t pt-3 mt-3">
                             <div className="space-y-1">
-                              {order.items && order.items.length > 0 ? (
-                                order.items.map((item, i) => (
+                              {orderItems.length > 0 ? (
+                                orderItems.map((item, i) => (
                                   <div key={i} className="flex justify-between text-sm">
                                     <span className="text-gray-700 dark:text-gray-300">
                                       {item.name || item.itemName || item.menuItem?.name || 'Unknown Item'} 
@@ -399,7 +415,8 @@ const AdminOrders = () => {
                             </div>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -408,8 +425,11 @@ const AdminOrders = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredOrders.map(order => (
-              <div key={order._id} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-lg transition">
+            {filteredOrders.map(order => {
+              const orderId = order.id || order._id || order.orderId;
+              const orderItems = parseItems(order.items);
+              return (
+              <div key={orderId} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-lg transition">
                 <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
                   <div className="flex-1 min-w-[200px]">
                     <div className="flex items-center gap-3 mb-2">
@@ -443,7 +463,7 @@ const AdminOrders = () => {
                     </p>
                     <select
                       value={order.status || 'pending'}
-                      onChange={(e) => updateStatus(order.id, e.target.value)}
+                      onChange={(e) => updateStatus(orderId, e.target.value)}
                       className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium mb-2 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     >
                       <option value="pending">Pending</option>
@@ -466,8 +486,8 @@ const AdminOrders = () => {
                 <div className="border-t pt-4 mt-4">
                   <h4 className="font-semibold mb-3 text-gray-700 dark:text-gray-300">Order Items:</h4>
                   <div className="space-y-2">
-                    {order.items && order.items.length > 0 ? (
-                      order.items.map((item, i) => (
+                    {orderItems.length > 0 ? (
+                      orderItems.map((item, i) => (
                         <div key={i} className="flex justify-between text-sm">
                           <span className="text-gray-700 dark:text-gray-300">
                             {item.name || item.itemName || item.menuItem?.name || 'Unknown Item'} 
@@ -514,7 +534,8 @@ const AdminOrders = () => {
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -555,7 +576,7 @@ const AdminOrders = () => {
                     <div>
                       <p><strong>Order Number:</strong> #{selectedOrder.dailyBillNumber}</p>
                       <p><strong>Date:</strong> {selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</p>
-                      <p><strong>Order ID:</strong> {selectedOrder.orderNumber || selectedOrder._id?.slice(-8)}</p>
+                      <p><strong>Order ID:</strong> {selectedOrder.orderNumber || (selectedOrder.id ? selectedOrder.id.slice(-8) : (selectedOrder._id ? selectedOrder._id.slice(-8) : 'N/A'))}</p>
                     </div>
                     <div>
                       <p><strong>Customer:</strong> {selectedOrder.customerName || selectedOrder.userName || 'Guest'}</p>
@@ -602,8 +623,8 @@ const AdminOrders = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedOrder.items && selectedOrder.items.length > 0 ? (
-                      selectedOrder.items.map((item, i) => (
+                    {parseItems(selectedOrder.items).length > 0 ? (
+                      parseItems(selectedOrder.items).map((item, i) => (
                         <tr key={i}>
                           <td>{item.name || item.itemName || item.menuItem?.name || 'Unknown Item'}</td>
                           <td>{item.quantity || 1}</td>

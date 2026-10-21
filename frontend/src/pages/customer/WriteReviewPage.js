@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -13,16 +13,30 @@ const WriteReviewPage = () => {
   // Get menu item from navigation state (if coming from order)
   const menuItem = location.state?.menuItem || null;
   const orderId = location.state?.orderId || null;
+  const [availableItems, setAvailableItems] = useState([]);
   
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    menuItem: menuItem?._id || '',
+    menuItem: menuItem?.id || menuItem?._id || '',
     order: orderId || '',
     rating: 5,
     title: '',
     comment: ''
   });
   const [hoveredRating, setHoveredRating] = useState(0);
+
+  useEffect(() => {
+    if (!menuItem) {
+      api.get('/menu').then(res => {
+        const items = res.data?.data?.items || res.data?.data || res.data || [];
+        const list = Array.isArray(items) ? items : [];
+        setAvailableItems(list);
+        if (list.length > 0) {
+          setFormData(prev => (prev.menuItem ? prev : { ...prev, menuItem: list[0].id || list[0]._id }));
+        }
+      }).catch(err => console.error('Failed to load menu for reviews', err));
+    }
+  }, [menuItem]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +59,18 @@ const WriteReviewPage = () => {
 
     setSubmitting(true);
     try {
-      await api.post('/reviews', formData);
+      const payload = {
+        ...formData,
+        userId: user?.id || user?._id,
+        user_id: user?.id || user?._id,
+        userName: user?.name,
+        user_name: user?.name,
+        customerEmail: user?.email,
+        customer_email: user?.email,
+        menuItemId: formData.menuItem,
+        orderId: formData.order || orderId
+      };
+      await api.post('/reviews', payload);
       toast.success('✓ Review submitted! Thank you for your feedback.');
       setTimeout(() => navigate('/customer/orders'), 2000);
     } catch (error) {
@@ -97,18 +122,23 @@ const WriteReviewPage = () => {
             {!menuItem && (
               <div>
                 <label className="block text-sm font-medium mb-2 dark:text-gray-200">
-                  Menu Item <span className="text-red-500">*</span>
+                  Select Dish to Review <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.menuItem}
                   onChange={(e) => setFormData({...formData, menuItem: e.target.value})}
                   className="input-field"
-                  placeholder="Enter menu item ID or select from your orders"
                   required
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Tip: Go to "My Orders" and click "Write Review" on an item you've ordered
+                >
+                  <option value="">Choose a menu item...</option>
+                  {availableItems.map(item => (
+                    <option key={item.id || item._id} value={item.id || item._id}>
+                      {item.name} — ₹{Math.round(item.price)}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select any dish from our artisan menu, or review items from your past orders.
                 </p>
               </div>
             )}

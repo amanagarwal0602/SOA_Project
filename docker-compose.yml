@@ -1,0 +1,66 @@
+# Skill 11: Containerization of Library & Food Delivery SOA Microservices
+version: '3.8'
+
+services:
+  # Standalone SOA Backend Service (Skill 1 to 7)
+  soa-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["java", "-jar", "app.jar", "--server.port=5000"]
+    ports:
+      - "5000:5000"
+    volumes:
+      - soa-data:/app/data
+    networks:
+      - soa-network
+
+  # Netflix Eureka Discovery Server (Skill 8)
+  discovery-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["java", "-jar", "discovery-server.jar"]
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_HOSTNAME=discovery-server
+    networks:
+      - soa-network
+
+  # Spring Cloud API Gateway (Skill 2)
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["java", "-jar", "api-gateway.jar"]
+    ports:
+      - "8080:8080"
+    environment:
+      - GATEWAY_PORT=8080
+      - EUREKA_SERVER_URL=http://discovery-server:8761/eureka/
+      - ALLOWED_ORIGIN=*
+    depends_on:
+      - discovery-server
+    networks:
+      - soa-network
+
+  # React Frontend (Nginx Production Server)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "3000:80"
+    depends_on:
+      - soa-service
+    networks:
+      - soa-network
+
+networks:
+  soa-network:
+    driver: bridge
+
+volumes:
+  soa-data:

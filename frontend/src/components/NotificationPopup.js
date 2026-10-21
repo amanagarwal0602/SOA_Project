@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { FiX, FiCheck, FiCheckCircle } from 'react-icons/fi';
+import { FiX, FiCheckCircle } from 'react-icons/fi';
 
 const NotificationPopup = () => {
   const { user } = useAuth();
@@ -12,39 +12,61 @@ const NotificationPopup = () => {
 
     const checkNotifications = async () => {
       try {
+        const userEmail = (user.email || '').toLowerCase();
+        const userId = user.id || user._id;
+
         // Check for confirmed reservations
         const reservationsRes = await api.get('/reservations');
-        const userReservations = (reservationsRes.data.data || []).filter(
-          res => res.guestEmail === user.email && 
-          res.status === 'confirmed' &&
-          !localStorage.getItem(`notif_seen_res_${res.id}`)
-        );
+        const userReservations = (reservationsRes.data?.data || reservationsRes.data || []).filter(res => {
+          const resId = res.id || res._id;
+          const emails = [res.guestEmail, res.guest_email, res.email, res.userEmail];
+          const matchEmail = userEmail && emails.some(e => e && e.toLowerCase() === userEmail);
+          const matchId = userId && (res.userId === userId || res.user_id === userId);
+          return (matchEmail || matchId) && 
+                 res.status === 'confirmed' &&
+                 !localStorage.getItem(`notif_seen_res_${resId}`);
+        });
 
         // Check for orders with status updates
         const ordersRes = await api.get('/orders');
-        const userOrders = (ordersRes.data.data || []).filter(
-          order => order.customerEmail === user.email && 
-          (order.status === 'confirmed' || order.status === 'preparing' || order.status === 'ready') &&
-          !localStorage.getItem(`notif_seen_order_${order.id}`)
-        );
+        const userOrders = (ordersRes.data?.data || ordersRes.data || []).filter(order => {
+          const orderId = order.id || order._id || order.orderId;
+          const emails = [order.customerEmail, order.customer_email, order.userEmail, order.email];
+          const matchEmail = userEmail && emails.some(e => e && e.toLowerCase() === userEmail);
+          const matchId = userId && (order.userId === userId || order.user_id === userId);
+          return (matchEmail || matchId) && 
+                 (order.status === 'confirmed' || order.status === 'preparing' || order.status === 'ready') &&
+                 !localStorage.getItem(`notif_seen_order_${orderId}`);
+        });
 
         const newNotifications = [
-          ...userReservations.map(res => ({
-            id: `res_${res.id}`,
-            type: 'reservation',
-            status: 'Confirmed',
-            details: `Table for ${parseInt(res.numberOfGuests) || parseInt(res.guests) || 'your party'}`,
-            date: res.date,
-            time: res.time,
-            note: res.specialRequests
-          })),
-          ...userOrders.map(order => ({
-            id: `order_${order.id}`,
-            type: 'order',
-            status: order.status.charAt(0).toUpperCase() + order.status.slice(1),
-            details: `Order #${order.id?.slice(0, 8).toUpperCase()}`,
-            items: order.items?.length || 0
-          }))
+          ...userReservations.map(res => {
+            const resId = res.id || res._id;
+            return {
+              id: `res_${resId}`,
+              type: 'reservation',
+              status: 'Confirmed',
+              details: `Table for ${parseInt(res.numberOfGuests) || parseInt(res.guests) || 'your party'}`,
+              date: res.date,
+              time: res.time || res.timeSlot || res.time_slot,
+              note: res.specialRequests
+            };
+          }),
+          ...userOrders.map(order => {
+            const orderId = order.id || order._id || order.orderId;
+            let count = 0;
+            if (Array.isArray(order.items)) count = order.items.length;
+            else if (typeof order.items === 'string') {
+              try { count = JSON.parse(order.items).length; } catch (e) { count = 1; }
+            }
+            return {
+              id: `order_${orderId}`,
+              type: 'order',
+              status: (order.status || 'Confirmed').charAt(0).toUpperCase() + (order.status || 'Confirmed').slice(1),
+              details: `Order #${order.dailyOrderNumber || (orderId ? String(orderId).slice(0, 8).toUpperCase() : 'NEW')}`,
+              items: count
+            };
+          })
         ];
 
         setNotifications(newNotifications);

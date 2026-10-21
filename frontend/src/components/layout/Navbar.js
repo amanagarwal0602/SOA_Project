@@ -149,6 +149,18 @@ const Navbar = () => {
                     >
                       My Orders
                     </Link>
+                    <Link
+                      to="/customer/reservations"
+                      className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    >
+                      My Reservations
+                    </Link>
+                    <Link
+                      to="/customer/favorites"
+                      className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-gray-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    >
+                      My Favorites
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2 transition-colors"
@@ -200,14 +212,30 @@ const Navbar = () => {
                 </Link>
               ))}
               {user && (
-                <Link
-                  to="/customer/orders"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center space-x-2 py-2 text-primary-600 font-medium"
-                >
-                  <FiPackage className="w-5 h-5" />
-                  <span>My Orders</span>
-                </Link>
+                <>
+                  <Link
+                    to="/customer/orders"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center space-x-2 py-2 text-primary-600 font-medium"
+                  >
+                    <FiPackage className="w-5 h-5" />
+                    <span>My Orders</span>
+                  </Link>
+                  <Link
+                    to="/customer/reservations"
+                    onClick={() => setIsOpen(false)}
+                    className="block py-2 text-gray-700 dark:text-gray-300 hover:text-primary-500 font-medium"
+                  >
+                    My Reservations
+                  </Link>
+                  <Link
+                    to="/customer/favorites"
+                    onClick={() => setIsOpen(false)}
+                    className="block py-2 text-gray-700 dark:text-gray-300 hover:text-primary-500 font-medium"
+                  >
+                    My Favorites
+                  </Link>
+                </>
               )}
               {!user && (
                 <Link

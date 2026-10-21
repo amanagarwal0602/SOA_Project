@@ -40,7 +40,7 @@ const AdminTeam = () => {
     e.preventDefault();
     try {
       if (editingMember) {
-        await api.put(`/team/${editingMember._id}`, formData);
+        await api.put(`/team/${editingMember.id || editingMember._id}`, formData);
         toast.success('✓ Team member updated!', { autoClose: 2000 });
       } else {
         await api.post('/team', formData);
@@ -139,8 +139,10 @@ const AdminTeam = () => {
         <div className="text-center py-12">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {members.map(member => (
-            <div key={member._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          {members.map(member => {
+            const memberId = member.id || member._id;
+            return (
+            <div key={memberId} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <div className="flex justify-center mb-4">
                 <Avatar 
                   src={member.image}
@@ -187,7 +189,7 @@ const AdminTeam = () => {
                 
                 {/* Show in About Toggle Button */}
                 <button
-                  onClick={() => handleToggleAbout(member._id)}
+                  onClick={() => handleToggleAbout(memberId)}
                   className={`px-3 py-2 text-sm rounded font-medium transition flex items-center justify-center gap-2 ${
                     member.showInAbout
                       ? 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50' 
@@ -205,7 +207,7 @@ const AdminTeam = () => {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(member._id)}
+                    onClick={() => handleDelete(memberId)}
                     className="flex-1 px-3 py-1 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
                   >
                     Delete
@@ -213,7 +215,8 @@ const AdminTeam = () => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

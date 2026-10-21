@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { FiTrash2, FiMessageSquare, FiX, FiHome, FiCheck } from 'react-icons/fi';
+import { FiTrash2, FiMessageSquare, FiX, FiHome } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 const AdminReviews = () => {
@@ -9,7 +9,6 @@ const AdminReviews = () => {
   const [selectedReview, setSelectedReview] = useState(null);
   const [responseText, setResponseText] = useState('');
   const [filter, setFilter] = useState('all');
-  const [actionStatus, setActionStatus] = useState({});
 
   useEffect(() => {
     fetchReviews();
@@ -27,27 +26,21 @@ const AdminReviews = () => {
 
   const togglePublish = async (reviewId) => {
     try {
-      setActionStatus({ [reviewId]: 'publishing' });
       await api.put(`/admin/reviews/${reviewId}/toggle-publish`);
       toast.success('✓ Status updated!', { autoClose: 2000 });
-      setActionStatus({ [reviewId]: 'success' });
       fetchReviews();
     } catch (error) {
       toast.error('Failed to update');
-      setActionStatus({});
     }
   };
 
   const toggleHomepage = async (reviewId) => {
     try {
-      setActionStatus({ [reviewId]: 'homepage' });
       await api.put(`/reviews/${reviewId}/toggle-homepage`);
       toast.success('✓ Homepage updated!', { autoClose: 2000 });
-      setActionStatus({ [reviewId]: 'success' });
       fetchReviews();
     } catch (error) {
       toast.error('Failed to update');
-      setActionStatus({});
     }
   };
 
@@ -69,7 +62,7 @@ const AdminReviews = () => {
       return;
     }
     try {
-      await api.put(`/reviews/${selectedReview._id}/respond`, { response: responseText });
+      await api.put(`/reviews/${selectedReview.id || selectedReview._id}/respond`, { response: responseText });
       toast.success('✓ Response added!', { autoClose: 2000 });
       setShowResponseModal(false);
       setResponseText('');
@@ -116,8 +109,10 @@ const AdminReviews = () => {
         </div>
 
         <div className="space-y-4">
-          {filteredReviews.map(review => (
-            <div key={review._id} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition">
+          {filteredReviews.map(review => {
+            const reviewId = review.id || review._id;
+            return (
+            <div key={reviewId} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition">
               <div className="flex justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
@@ -137,7 +132,7 @@ const AdminReviews = () => {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => togglePublish(review._id)}
+                    onClick={() => togglePublish(reviewId)}
                     className={`px-4 py-2 rounded-lg font-medium ${
                       review.isPublished ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
                     }`}
@@ -145,7 +140,7 @@ const AdminReviews = () => {
                     {review.isPublished ? 'Published' : 'Unpublished'}
                   </button>
                   <button
-                    onClick={() => toggleHomepage(review._id)}
+                    onClick={() => toggleHomepage(reviewId)}
                     className={`px-4 py-2 rounded-lg font-medium flex items-center gap-1 ${
                       review.showOnHomepage ? 'bg-purple-500 text-white hover:bg-purple-600' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                     }`}
@@ -161,7 +156,7 @@ const AdminReviews = () => {
                     <FiMessageSquare className="inline mr-1" /> {review.adminResponse ? 'Edit' : 'Respond'}
                   </button>
                   <button
-                    onClick={() => deleteReview(review._id)}
+                    onClick={() => deleteReview(reviewId)}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                   >
                     <FiTrash2 />
@@ -180,7 +175,8 @@ const AdminReviews = () => {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Response Modal */}

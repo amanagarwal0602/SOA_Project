@@ -19,12 +19,16 @@ const MyReservationsPage = () => {
       const allReservations = response.data.data || [];
       
       // Filter to show only current user's reservations
-      const userReservations = allReservations.filter(res => 
-        res.userId === user?.id || 
-        res.user_id === user?.id ||
-        res.email === user?.email ||
-        res.userEmail === user?.email
-      );
+      const userEmail = (user?.email || '').toLowerCase();
+      const userId = user?.id || user?._id;
+      const userReservations = allReservations.filter(res => {
+        if (userId && (res.userId === userId || res.user_id === userId)) return true;
+        if (userEmail) {
+          const emailCandidates = [res.guestEmail, res.guest_email, res.email, res.userEmail, res.user_email];
+          return emailCandidates.some(e => e && e.toLowerCase() === userEmail);
+        }
+        return false;
+      });
       
       setReservations(userReservations);
     } catch (error) {
@@ -76,11 +80,13 @@ const MyReservationsPage = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {reservations.map(res => (
-              <div key={res._id} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+            {reservations.map(res => {
+              const resId = res.id || res._id;
+              return (
+              <div key={resId} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-semibold text-lg dark:text-gray-100">Reservation #{res.reservationNumber || res._id.slice(-6)}</h3>
+                    <h3 className="font-semibold text-lg dark:text-gray-100">Reservation #{res.reservationNumber || (resId ? String(resId).slice(-6) : 'N/A')}</h3>
                     <p className="text-gray-600 dark:text-gray-400 mt-2">
                       <span className="font-medium">Date:</span> {new Date(res.date).toLocaleDateString()}
                     </p>
@@ -111,7 +117,7 @@ const MyReservationsPage = () => {
                       <button
                         onClick={() => navigate('/write-review', { 
                           state: { 
-                            reservationId: res._id,
+                            reservationId: resId,
                             isReservationReview: true
                           } 
                         })}
@@ -125,7 +131,7 @@ const MyReservationsPage = () => {
                     {/* Cancel button - only show for confirmed or pending reservations */}
                     {(res.status?.toLowerCase() === 'confirmed' || res.status?.toLowerCase() === 'pending') && (
                       <button
-                        onClick={() => handleCancelReservation(res._id)}
+                        onClick={() => handleCancelReservation(resId)}
                         className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 transition font-medium text-sm shadow-md"
                       >
                         Cancel Reservation
@@ -147,7 +153,8 @@ const MyReservationsPage = () => {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
         

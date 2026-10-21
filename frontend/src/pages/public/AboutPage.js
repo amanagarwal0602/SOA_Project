@@ -26,9 +26,10 @@ const AboutPage = () => {
       ]);
       
       setAbout(aboutRes.data);
-      setValues(featuresRes.data.filter(f => f.is_active));
+      setValues(Array.isArray(featuresRes.data) ? featuresRes.data.filter(f => f.is_active !== false && f.isActive !== false) : []);
       // Filter team members that are active AND marked to show in about section
-      setTeam(teamRes.data.filter(t => (t.is_active || t.isActive) && t.showInAbout));
+      const allTeam = Array.isArray(teamRes.data) ? teamRes.data : [];
+      setTeam(allTeam.filter(t => (t.is_active !== false && t.isActive !== false) && (t.showInAbout !== false && t.show_on_about !== false)));
     } catch (error) {
       console.error('Failed to load about page content:', error);
     } finally {
@@ -86,9 +87,11 @@ const AboutPage = () => {
               >
                 <h2 className="text-4xl font-serif font-bold mb-6 dark:text-gray-100">{about?.heading || 'Our Story'}</h2>
                 <div className="text-gray-700 dark:text-gray-300 space-y-4">
-                  {about?.content && about.content.split('\n').map((paragraph, idx) => (
+                  {about?.content ? about.content.split('\n').map((paragraph, idx) => (
                     <p key={idx}>{paragraph}</p>
-                  ))}
+                  )) : (
+                    <p>{about?.story || about?.description || 'Founded with a passion for exceptional coffee and culinary excellence, Lumière has been serving our community with handcrafted beverages and artisanal cuisine made from the finest locally-sourced ingredients.'}</p>
+                  )}
                 </div>
               </motion.div>
               <motion.div
@@ -143,7 +146,7 @@ const AboutPage = () => {
           <div className="grid md:grid-cols-4 gap-8">
             {team.map((member) => (
               <EditableWrapper 
-                key={member.id}
+                key={member.id || member._id}
                 onEdit={() => handleEdit('team-member', member)} 
                 type="team-member"
               >

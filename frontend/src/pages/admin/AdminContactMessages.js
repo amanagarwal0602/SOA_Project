@@ -72,7 +72,7 @@ const AdminContactMessages = () => {
       toast.error('Please enter a reply message');
       return;
     }
-    updateMessageStatus(selectedMessage._id, 'replied', replyText);
+    updateMessageStatus(selectedMessage.id || selectedMessage._id, 'replied', replyText);
   };
 
   const getStatusBadge = (status) => {
@@ -208,9 +208,11 @@ const AdminContactMessages = () => {
           </div>
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {messages.map((message) => (
+            {messages.map((message) => {
+              const messageId = message.id || message._id;
+              return (
               <div
-                key={message._id}
+                key={messageId}
                 className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
                   message.status === 'unread' ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''
                 }`}
@@ -265,7 +267,7 @@ const AdminContactMessages = () => {
                 <div className="flex items-center space-x-2">
                   {message.status === 'unread' && (
                     <button
-                      onClick={() => updateMessageStatus(message._id, 'read')}
+                      onClick={() => updateMessageStatus(messageId, 'read')}
                       className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1"
                     >
                       <FiCheck className="w-4 h-4" />
@@ -282,7 +284,7 @@ const AdminContactMessages = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => deleteMessage(message._id)}
+                    onClick={() => deleteMessage(messageId)}
                     className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1"
                   >
                     <FiTrash2 className="w-4 h-4" />
@@ -290,7 +292,8 @@ const AdminContactMessages = () => {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

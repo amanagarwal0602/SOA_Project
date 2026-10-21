@@ -47,7 +47,7 @@ const AdminCoupons = () => {
       };
 
       if (editingCoupon) {
-        await api.put(`/coupons/${editingCoupon._id}`, submitData);
+        await api.put(`/coupons/${editingCoupon.id || editingCoupon._id}`, submitData);
         toast.success('✓ Coupon updated!');
       } else {
         await api.post('/coupons', submitData);
@@ -161,8 +161,10 @@ const AdminCoupons = () => {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
-              {coupons.map((coupon) => (
-                <tr key={coupon._id} className={`transition-colors ${isExpired(coupon.validUntil) ? 'opacity-60' : 'hover:bg-gray-50 dark:hover:bg-gray-750'}`}>
+              {coupons.map((coupon) => {
+                const couponId = coupon.id || coupon._id;
+                return (
+                <tr key={couponId} className={`transition-colors ${isExpired(coupon.validUntil) ? 'opacity-60' : 'hover:bg-gray-50 dark:hover:bg-gray-750'}`}>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className="font-mono font-bold text-slate-700 dark:text-slate-200 text-sm bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded border border-slate-200 dark:border-slate-700">{coupon.code}</span>
                   </td>
@@ -194,7 +196,7 @@ const AdminCoupons = () => {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <button
-                      onClick={() => handleToggleStatus(coupon._id)}
+                      onClick={() => handleToggleStatus(couponId)}
                       className={`inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-lg shadow-sm ${
                         coupon.isActive 
                           ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800' 
@@ -216,7 +218,7 @@ const AdminCoupons = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(coupon._id)}
+                        onClick={() => handleDelete(couponId)}
                         className="inline-flex items-center px-2.5 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 text-xs font-semibold shadow-sm hover:shadow-md transition-all"
                       >
                         Delete
@@ -224,7 +226,8 @@ const AdminCoupons = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
 

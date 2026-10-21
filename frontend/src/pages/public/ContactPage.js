@@ -59,7 +59,20 @@ const ContactPage = () => {
     );
   }
 
-  const hours = contactInfo?.openingHours || contactInfo?.hours || {};
+  const rawHours = contactInfo?.openingHours || contactInfo?.hours;
+  const hours = (rawHours && typeof rawHours === 'object' && !Array.isArray(rawHours))
+    ? rawHours
+    : typeof rawHours === 'string'
+      ? { 'Daily': rawHours }
+      : {
+          monday: '7:00 AM - 8:00 PM',
+          tuesday: '7:00 AM - 8:00 PM',
+          wednesday: '7:00 AM - 8:00 PM',
+          thursday: '7:00 AM - 8:00 PM',
+          friday: '7:00 AM - 9:00 PM',
+          saturday: '8:00 AM - 9:00 PM',
+          sunday: '8:00 AM - 8:00 PM'
+        };
 
   return (
     <div className="min-h-screen dark:bg-gray-900">

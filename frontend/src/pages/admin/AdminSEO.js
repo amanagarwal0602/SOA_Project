@@ -43,10 +43,13 @@ const AdminSEO = () => {
 
   const handleSave = async () => {
     try {
+      setLoading(true);
       await api.put(`/seo/${page}`, seoData);
       toast.success('✓ SEO settings updated!', { autoClose: 2000 });
     } catch (error) {
       toast.error('Failed to update SEO settings');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,8 +137,8 @@ const AdminSEO = () => {
               </ul>
             </div>
 
-            <button onClick={handleSave} className="btn-primary w-full">
-              Save SEO Settings
+            <button onClick={handleSave} disabled={loading} className="btn-primary w-full disabled:opacity-50">
+              {loading ? 'Saving...' : 'Save SEO Settings'}
             </button>
           </div>
         </div>

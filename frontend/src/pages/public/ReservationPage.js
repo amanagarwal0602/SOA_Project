@@ -26,7 +26,29 @@ const ReservationPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/reservations', formData);
+      const payload = {
+        ...formData,
+        userId: user?.id || user?._id,
+        user_id: user?.id || user?._id,
+        guestName: formData.guestName,
+        guest_name: formData.guestName,
+        guestEmail: formData.guestEmail,
+        guest_email: formData.guestEmail,
+        guestPhone: formData.guestPhone,
+        guest_phone: formData.guestPhone,
+        email: formData.guestEmail,
+        name: formData.guestName,
+        phone: formData.guestPhone,
+        guests: formData.numberOfGuests,
+        numberOfGuests: formData.numberOfGuests,
+        number_of_guests: formData.numberOfGuests,
+        timeSlot: formData.timeSlot,
+        time_slot: formData.timeSlot,
+        time: formData.timeSlot,
+        specialRequests: formData.specialRequests,
+        special_requests: formData.specialRequests
+      };
+      await api.post('/reservations', payload);
       toast.success('✓ Reservation created successfully!');
       setTimeout(() => navigate('/customer/reservations'), 1500);
     } catch (error) {

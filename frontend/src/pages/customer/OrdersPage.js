@@ -13,6 +13,19 @@ const OrdersPage = () => {
   const [activeTab, setActiveTab] = useState('orders'); // orders or reservations
   const [filter, setFilter] = useState('all'); // all, pending, completed, cancelled
 
+  const parseItems = (items) => {
+    if (Array.isArray(items)) return items;
+    if (typeof items === 'string') {
+      try {
+        const parsed = JSON.parse(items);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  };
+
   const fetchOrdersAndReservations = async () => {
     try {
       setLoading(true);
@@ -21,24 +34,33 @@ const OrdersPage = () => {
         api.get('/reservations')
       ]);
       
-      const ordersData = ordersRes.data.data || [];
-      const reservationsData = reservationsRes.data.data || [];
+      const ordersData = ordersRes.data.data || ordersRes.data || [];
+      const reservationsData = reservationsRes.data.data || reservationsRes.data || [];
       
+      const userEmail = (user?.email || '').toLowerCase();
+      const userId = user?.id || user?._id;
+
       // Filter orders to show only current user's orders
-      const userOrders = ordersData.filter(order => 
-        order.userId === user?.id || 
-        order.user_id === user?.id ||
-        order.userEmail === user?.email ||
-        order.user_email === user?.email
-      );
+      const userOrders = ordersData.filter(order => {
+        if (!user) return true;
+        if (userId && (order.userId === userId || order.user_id === userId)) return true;
+        if (userEmail) {
+          const emails = [order.customerEmail, order.customer_email, order.userEmail, order.user_email, order.email];
+          return emails.some(e => e && e.toLowerCase() === userEmail);
+        }
+        return false;
+      });
       
       // Filter reservations to show only current user's reservations
-      const userReservations = reservationsData.filter(res => 
-        res.userId === user?.id || 
-        res.user_id === user?.id ||
-        res.email === user?.email ||
-        res.userEmail === user?.email
-      );
+      const userReservations = reservationsData.filter(res => {
+        if (!user) return true;
+        if (userId && (res.userId === userId || res.user_id === userId)) return true;
+        if (userEmail) {
+          const emails = [res.guestEmail, res.guest_email, res.email, res.userEmail, res.user_email];
+          return emails.some(e => e && e.toLowerCase() === userEmail);
+        }
+        return false;
+      });
       
       setOrders(userOrders);
       setReservations(userReservations);
@@ -71,22 +93,7 @@ const OrdersPage = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'delivered':
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'processing':
-      case 'preparing':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'ready':
-        return 'bg-blue-100 text-blue-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+
 
   const filteredOrders = orders.filter(order => {
     if (filter === 'all') return true;
@@ -157,8 +164,11 @@ const OrdersPage = () => {
             </div>
           ) : (
             <div className="space-y-4">
-            {filteredOrders.map(order => (
-              <div key={order._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all overflow-hidden border border-gray-200 dark:border-gray-700">
+            {filteredOrders.map(order => {
+              const orderId = order.id || order._id || order.orderId;
+              const orderItems = parseItems(order.items);
+              return (
+              <div key={orderId} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all overflow-hidden border border-gray-200 dark:border-gray-700">
                 <div className="p-6">
                   <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
                     <div className="flex-1">
@@ -166,7 +176,7 @@ const OrdersPage = () => {
                         <div className="p-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
                           {getStatusIcon(order.status)}
                         </div>
-                        Order #{order.dailyOrderNumber || order.orderNumber || order._id?.slice(-6)}
+                        Order #{order.dailyOrderNumber || order.orderNumber || (orderId ? String(orderId).slice(-6) : 'N/A')}
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 text-sm mt-2 flex items-center gap-1.5">
                         <FiClock className="w-4 h-4" />
@@ -208,14 +218,14 @@ const OrdersPage = () => {
                   </div>
 
                   {/* Order Items */}
-                  {order.items && order.items.length > 0 && (
+                  {orderItems.length > 0 && (
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                       <h4 className="font-bold mb-3 text-gray-900 dark:text-gray-100 flex items-center gap-2">
                         <FiPackage className="text-primary-600" />
                         Order Items
                       </h4>
                       <div className="space-y-2">
-                        {order.items.map((item, idx) => (
+                        {orderItems.map((item, idx) => (
                           <div key={idx} className="flex justify-between items-center py-3 px-4 bg-white dark:bg-gray-800 rounded-lg hover:shadow-md transition-all">
                             <div className="flex-1">
                               <p className="font-semibold text-gray-900 dark:text-gray-100">{item.name || item.itemName || 'Unknown Item'}</p>
@@ -237,12 +247,12 @@ const OrdersPage = () => {
                                   onClick={() => navigate('/write-review', { 
                                     state: { 
                                       menuItem: { 
-                                        _id: item.menuItem || item._id,
+                                        _id: item.menuItem || item.id || item._id,
                                         name: item.name || item.itemName,
                                         price: item.price || item.itemPrice,
                                         image: item.image
                                       },
-                                      orderId: order._id 
+                                      orderId: orderId 
                                     } 
                                   })}
                                   className="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium rounded-lg transition flex items-center gap-1"
@@ -270,7 +280,8 @@ const OrdersPage = () => {
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
             </div>
           )
         ) : (
@@ -282,8 +293,10 @@ const OrdersPage = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {reservations.map(reservation => (
-                <div key={reservation._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all overflow-hidden border border-gray-200 dark:border-gray-700">
+              {reservations.map(reservation => {
+                const resId = reservation.id || reservation._id;
+                return (
+                <div key={resId} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all overflow-hidden border border-gray-200 dark:border-gray-700">
                   <div className="p-6">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
                       <div className="flex-1">
@@ -291,7 +304,7 @@ const OrdersPage = () => {
                           <div className="p-2 bg-gradient-to-br from-primary-50 to-indigo-50 rounded-lg">
                             <FiCalendar className="text-primary-600" size={24} />
                           </div>
-                          Reservation #{reservation._id?.slice(-6)}
+                          Reservation #{reservation.reservationNumber || (resId ? String(resId).slice(-6) : 'N/A')}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400 text-sm mt-2 flex items-center gap-1.5">
                           <FiClock className="w-4 h-4" />
@@ -350,7 +363,8 @@ const OrdersPage = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )
         )}

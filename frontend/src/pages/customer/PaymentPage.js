@@ -4,6 +4,7 @@ import { FiCheck, FiCopy, FiDownload } from 'react-icons/fi';
 import QRCode from 'qrcode';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { useSiteSettings } from '../../hooks/useSiteSettings';
 import { toast } from 'react-toastify';
 
@@ -11,6 +12,7 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { clearCart } = useCart();
   const { settings } = useSiteSettings();
   const [qrCode, setQrCode] = useState('');
   const [utrNumber, setUtrNumber] = useState('');
@@ -30,6 +32,7 @@ const PaymentPage = () => {
       return;
     }
     generateQRCode();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderDetails, totalAmount, navigate]);
 
   const generateQRCode = async () => {
@@ -94,6 +97,7 @@ const PaymentPage = () => {
       };
 
       const response = await api.post('/orders', orderData);
+      clearCart();
       
       toast.success('✓ Payment confirmed! Redirecting to orders...');
       setTimeout(() => {

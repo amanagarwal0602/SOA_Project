@@ -34,17 +34,26 @@ const AdminDashboard = () => {
     }
   };
 
+  const getOrderDate = (order) => {
+    const val = order?.createdAt || order?.created_at;
+    if (!val) return null;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
   // Calculate today's sales
   const getTodaySales = () => {
     const today = new Date().toISOString().split('T')[0];
     const todayOrders = orders.filter(order => {
-      const orderDate = new Date(order.created_at).toISOString().split('T')[0];
+      const d = getOrderDate(order);
+      if (!d) return false;
+      const orderDate = d.toISOString().split('T')[0];
       return orderDate === today && order.status !== 'cancelled';
     });
     
     return {
       count: todayOrders.length,
-      total: todayOrders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0)
+      total: todayOrders.reduce((sum, order) => sum + (parseFloat(order.total || order.totalPrice) || 0), 0)
     };
   };
 
@@ -55,15 +64,16 @@ const AdminDashboard = () => {
     const currentYear = now.getFullYear();
     
     const monthOrders = orders.filter(order => {
-      const orderDate = new Date(order.created_at);
-      return orderDate.getMonth() === currentMonth && 
-             orderDate.getFullYear() === currentYear &&
+      const d = getOrderDate(order);
+      if (!d) return false;
+      return d.getMonth() === currentMonth && 
+             d.getFullYear() === currentYear &&
              order.status !== 'cancelled';
     });
     
     return {
       count: monthOrders.length,
-      total: monthOrders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0)
+      total: monthOrders.reduce((sum, order) => sum + (parseFloat(order.total || order.totalPrice) || 0), 0)
     };
   };
 
@@ -74,19 +84,22 @@ const AdminDashboard = () => {
     end.setHours(23, 59, 59, 999);
     
     const filteredOrders = orders.filter(order => {
-      const orderDate = new Date(order.created_at);
-      return orderDate >= start && orderDate <= end && order.status !== 'cancelled';
+      const d = getOrderDate(order);
+      if (!d) return false;
+      return d >= start && d <= end && order.status !== 'cancelled';
     });
     
     // Group by date
     const salesByDate = {};
     filteredOrders.forEach(order => {
-      const date = new Date(order.created_at).toISOString().split('T')[0];
+      const d = getOrderDate(order);
+      if (!d) return;
+      const date = d.toISOString().split('T')[0];
       if (!salesByDate[date]) {
         salesByDate[date] = { count: 0, total: 0 };
       }
       salesByDate[date].count++;
-      salesByDate[date].total += parseFloat(order.total) || 0;
+      salesByDate[date].total += parseFloat(order.total || order.totalPrice) || 0;
     });
     
     return Object.entries(salesByDate)
@@ -94,14 +107,47 @@ const AdminDashboard = () => {
       .sort((a, b) => new Date(b.date) - new Date(a.date));
   };
 
-  // Calculate product-wise sales from menu items
+  // Calculate product-wise sales from orders and menu items
   const getProductWiseSales = () => {
     const productSales = {};
-    
-    // Count from menu item order_count if available
+
+    // 1. Accumulate from real order items
+    orders.forEach(order => {
+      if (order.status === 'cancelled') return;
+      let items = [];
+      if (Array.isArray(order.items)) {
+        items = order.items;
+      } else if (typeof order.items === 'string') {
+        try {
+          items = JSON.parse(order.items);
+        } catch (e) {
+          items = [];
+        }
+      }
+
+      if (Array.isArray(items)) {
+        items.forEach(item => {
+          const key = item.name || item.itemName || 'Unknown Item';
+          const qty = parseInt(item.quantity) || 1;
+          const price = parseFloat(item.price || item.itemPrice) || 0;
+          if (!productSales[key]) {
+            productSales[key] = {
+              name: key,
+              quantity: 0,
+              revenue: 0,
+              price: price
+            };
+          }
+          productSales[key].quantity += qty;
+          productSales[key].revenue += qty * price;
+        });
+      }
+    });
+
+    // 2. Count from menu item order_count if available and not yet included
     menuItems.forEach(item => {
-      if (item.order_count > 0) {
-        productSales[item.id] = {
+      if (item.order_count > 0 && !productSales[item.name]) {
+        productSales[item.name] = {
           name: item.name,
           quantity: item.order_count || 0,
           revenue: (item.order_count || 0) * (parseFloat(item.price) || 0),

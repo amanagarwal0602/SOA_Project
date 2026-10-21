@@ -31,7 +31,7 @@ const CustomerDashboard = () => {
     checkPermission(user, link.permission)
   );
 
-  const quickLinks = [...customerLinks, ...availableAdminLinks];
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

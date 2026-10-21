@@ -10,7 +10,6 @@ const getTimestamp = () => new Date().toISOString();
 // Initialize localStorage with default data
 const initializeData = () => {
   const existingData = localStorage.getItem('cafe_data');
-  const DATA_VERSION = '2.2'; // Dynamic data: reviews, gallery, team, features only in sample data
   
   // DON'T reinitialize if data exists - let App.js handle sample data loading
   if (existingData) {

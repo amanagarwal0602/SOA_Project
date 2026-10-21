@@ -15,7 +15,8 @@ const GalleryPage = () => {
   const fetchImages = async () => {
     try {
       const response = await api.get('/gallery');
-      setImages(response.data.data || []);
+      const list = response.data?.data || (Array.isArray(response.data) ? response.data : []);
+      setImages(list);
     } catch (error) {
       console.error('Failed to load gallery');
       setImages([]);
@@ -49,7 +50,7 @@ const GalleryPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {images.map((image) => (
             <EditableWrapper 
-              key={image._id}
+              key={image.id || image._id}
               onEdit={() => handleEdit('gallery-item', image)} 
               type="gallery-item"
             >
@@ -58,7 +59,7 @@ const GalleryPage = () => {
               className="aspect-square overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition"
             >
               <img
-                src={image.image || 'https://via.placeholder.com/400'}
+                src={image.image || image.url || image.imageUrl || 'https://via.placeholder.com/400'}
                 alt={image.title}
                 className="w-full h-full object-cover"
               />
@@ -75,7 +76,7 @@ const GalleryPage = () => {
           onClick={() => setSelectedImage(null)}
         >
           <img
-            src={selectedImage.image}
+            src={selectedImage.image || selectedImage.url || selectedImage.imageUrl || 'https://via.placeholder.com/400'}
             alt={selectedImage.title}
             className="max-w-full max-h-full object-contain"
           />

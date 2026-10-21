@@ -49,3 +49,10 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# GCP & Cloud credentials & local DB
+gcp-sa-key.json
+*.json.key
+*key*.json
+*.tmp
+data/

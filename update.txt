@@ -1,0 +1,240 @@
+================================================================================
+SOA PROJECT (24SDCS03: SOA PROGRAMMING AND MICROSERVICES) - STATUS & HANDOVER
+Generated: 21-October-2026
+File: update.txt
+================================================================================
+
+1. EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+- Repository: https://github.com/amanagarwal0602/SOA_Project
+- Target Platform: Google Cloud Platform (GCP Cloud Run - Project: dark-bindery-466613-u2)
+- Architecture: Microservices SOA Stack adhering to Course Code 24SDCS03 (Problem Statement PS002).
+- The original repository had an incomplete backend requiring local MongoDB and a stubbed frontend.
+- The system is now 100% operational, fully integrated with real Spring Boot 3.2.5 microservices,
+  Spring Data JPA with persistent H2 storage, JJWT authentication, and React 18.
+- All gimmicks (fake Mongo toggles, mock data wipers, raw ID inputs) have been eliminated and
+  replaced with functional, live components and system status probes.
+- Both Frontend and Backend are DEPLOYED and ACTIVE on Google Cloud Run with automatic HTTPS:
+  * Live Frontend: https://soa-frontend-470517179980.asia-south1.run.app
+  * Live Backend:  https://soa-backend-470517179980.asia-south1.run.app
+- Automated CI/CD pipeline via GitHub Actions (.github/workflows/deploy-gcp.yml) updates GCP
+  automatically upon every push to the repository.
+- Build Status:
+  * Backend: BUILD SUCCESS (All 8 Unit & Integration tests pass)
+  * Frontend: Compiled successfully with 0 errors and 0 ESLint warnings.
+
+================================================================================
+2. LIVE GOOGLE CLOUD PLATFORM (GCP) DEPLOYMENT
+================================================================================
+GCP Project ID : dark-bindery-466613-u2
+GCP Region     : asia-south1
+Active Account : amanagarwal0602@gmail.com
+
+Live Cloud Run Endpoints:
+- Frontend Website : https://soa-frontend-470517179980.asia-south1.run.app
+  * React 18 SPA served via production Nginx with try_files index.html fallback.
+  * Baked with REACT_APP_API_URL=https://soa-backend-470517179980.asia-south1.run.app/api.
+- Backend REST API : https://soa-backend-470517179980.asia-south1.run.app
+  * Spring Boot 3.2.5 / Java 21 containerized service.
+  * Dynamic port binding to ${PORT:5000}.
+- System Health    : https://soa-backend-470517179980.asia-south1.run.app/health
+  * Returns JSON {"service": "soa-service", "status": "UP", "timestamp": ...}
+- Menu Catalog     : https://soa-backend-470517179980.asia-south1.run.app/api/menu
+  * Pre-seeded artisanal food catalog with category filters, ratings, and veg flags.
+- Authentication   : https://soa-backend-470517179980.asia-south1.run.app/api/auth/login
+  * Real JWT authentication with HMAC-SHA384 tokens.
+
+Pre-Seeded Credentials (Live on Cloud & Local):
+- Admin Account:
+  * Username: admin
+  * Password: admin
+  * Access: Full Admin Dashboard, Menu CRUD, SEO, Analytics, Orders & Reservations
+- Demo Customer Account:
+  * Username: demo
+  * Password: demo
+  * Access: Customer portal, Cart, Checkout, Favorites, Order Tracking
+
+================================================================================
+3. COMPONENT OVERHAUL & GIMMICK ELIMINATION
+================================================================================
+Every component across the entire repository was systematically audited, refactored, and tested:
+
+1. System Health Dashboard (StorageConfigPage.js):
+   - Eliminated the fake "MongoDB vs SheetDB" storage toggle gimmick.
+   - Built a real System & Cloud Microservices Architecture Status dashboard featuring
+     live health probes to /health with real-time round-trip latency counter (ms), topology
+     breakdown (React SPA, Spring Boot 3.2.5, Eureka, Gateway, JPA/H2), and Cloud Run readiness.
+
+2. Favorites Management (FavoritesPage.js):
+   - Replaced placeholder state with live /api/users/favorites integration and local fallback.
+   - Built responsive item cards with "Add to Cart" and "Remove from Favorites" actions.
+   - Added friendly empty state with an "Explore Menu" call-to-action button.
+
+3. Payment & Checkout (PaymentPage.js):
+   - Connected useCart().clearCart() immediately upon order submission so the cart empties
+     automatically after checkout.
+   - Generated scannable UPI QR code and added transaction ID / UTR number validation.
+
+4. Customer Orders (OrdersPage.js):
+   - Added defensive parseItems helper to safely deserialize order.items JSON strings,
+     eliminating items.map is not a function runtime crashes.
+   - Fixed customer order filtering to check customerEmail, userEmail, and userId aliases.
+   - Standardized ID referencing across order.id, order._id, and order.orderId.
+
+5. Admin Orders Management (AdminOrders.js):
+   - Integrated parseItems helper for both list and date-wise views.
+   - Wired bill generator modal with safe ID references and real pricing math.
+
+6. Admin Analytics (AdminDashboard.js):
+   - Added defensive getOrderDate(order) helper to safely parse createdAt or created_at,
+     eliminating RangeError: Invalid time value crashes.
+   - Wired getProductWiseSales() to aggregate real items from customer orders.
+
+7. Customer Reviews Flow (WriteReviewPage.js):
+   - Eliminated the raw text item ID input gimmick.
+   - Built a dynamic menu item <select> dropdown populated via GET /menu, allowing customers
+     to select dishes directly by name.
+   - Enhanced submission payload with verified user profile metadata.
+
+8. Admin Management Modules:
+   - AdminCoupons.js: Standardized coupon toggle, edit, and delete handlers to support id || _id.
+   - AdminReviews.js: Standardized publish and homepage toggles to id || _id; removed unused vars.
+   - AdminMenu.js: Standardized item edit, delete, and availability toggles.
+   - AdminTeam.js, AdminFeatures.js, AdminGallery.js, AdminContactMessages.js: Standardized all CRUD
+     handlers to support Spring Data JPA IDs.
+   - EditModal.js: Removed duplicate case statements for logo, contact-info, and review.
+
+9. Navigation & Layout (Navbar.js):
+   - Added "My Reservations" and "My Favorites" navigation links to both desktop account dropdown
+     and mobile navigation drawer.
+
+10. SEO Metadata Persistence (ContentController.java):
+    - Added /api/seo/{page} and /seo/{page} GET and PUT endpoints in the Spring Boot backend to
+      support page-specific SEO metadata persistence alongside /api/seo.
+
+11. Clean Production Build:
+    - Stripped all Unicode Byte Order Marks (BOM) from .js files across frontend/src.
+    - Cleaned unused imports and variables in MenuPage, HomePage, AdminSEO, CustomerDashboard.
+    - Verified npm run build -> Compiled successfully with 0 fatal errors and 0 ESLint warnings.
+
+================================================================================
+4. CONTINUOUS INTEGRATION & CONTINUOUS DEPLOYMENT (CI/CD)
+================================================================================
+Automated pipeline configured via GitHub Actions:
+- File: .github/workflows/deploy-gcp.yml
+- Trigger: Automatic execution upon git push to main / master branch.
+- Workflow:
+  1. Checks out repository source code.
+  2. Authenticates to Google Cloud using GitHub Secret ${{ secrets.GCP_SA_KEY }}.
+  3. Sets up Google Cloud SDK.
+  4. Builds and deploys soa-backend to Cloud Run (asia-south1, port 5000).
+  5. Builds and deploys soa-frontend to Cloud Run (asia-south1, port 80).
+
+GCP Service Account:
+- Name: github-deployer
+- Email: github-deployer@dark-bindery-466613-u2.iam.gserviceaccount.com
+- Granted Roles:
+  * roles/run.admin (Deploy and manage Cloud Run revisions)
+  * roles/cloudbuild.builds.editor (Execute Cloud Build container builds)
+  * roles/storage.admin (Upload build source artifacts to GCS)
+  * roles/iam.serviceAccountUser (Act as Cloud Run runtime service account)
+- Key file: gcp-sa-key.json (Protected & excluded via .gitignore)
+
+================================================================================
+5. SOA WORKBOOK MAPPING (SKILLS 1 TO 12)
+================================================================================
+Course: 24SDCS03 - SOA PROGRAMMING AND MICROSERVICES (Problem Statement PS002)
+
+SKILL 1: Designing a Food Delivery SOA System
+- Implemented in: MenuController.java, OrderController.java, ContentController.java
+- Features: Restaurant catalog, category filtering, order lifecycle management.
+
+SKILL 2: API Gateway for Service Routing
+- Implemented in: backend/api-gateway (application.yml), GatewayController.java
+- Features: Spring Cloud Gateway routing, Eureka load balancing (/gateway/**).
+
+SKILL 3: User Registration System with Validation
+- Implemented in: AuthController.java (/api/auth/register, /signup)
+- Features: Validation checks for empty fields and duplicate usernames/emails.
+
+SKILL 4: Token-Based Authentication (JWT)
+- Implemented in: JWTUtility.java, JwtFilter.java, AuthController.java
+- Features: HS384 HMAC secret signing, token expiration, /validate, /user, /api/auth/login.
+
+SKILL 5: Securing APIs with CORS
+- Implemented in: SecurityConfig.java, CorsController.java (/message)
+- Features: AllowedOriginPatterns("*"), credential support, GET /message returning "Welcome to CORS".
+
+SKILL 6: Library Management Microservice (CRUD)
+- Implemented in: Book.java, BookRepository.java, BookService.java, BookController.java
+- Features: Full CRUD microservice at /books (GET all, GET by ID, POST, PUT, DELETE).
+
+SKILL 7: Securing Library Service with JWT & RBAC
+- Implemented in: JwtFilter.java, SecurityConfig.java, BookController.java
+- Features: Role-based authorization for /rbc/books (hasRole('ADMIN') for write/delete).
+
+SKILL 8: Service Discovery with Eureka
+- Implemented in: backend/discovery-server (port 8761), SoaApplication.java (@EnableDiscoveryClient)
+- Features: Service registration, heartbeats, and discovery registry.
+
+SKILL 9: Unit Testing for Payment Service
+- Implemented in: PaymentService.java, PaymentServiceTest.java
+- Features: JUnit 5 test suite validating processPayment, invalid amount exceptions, and refunds.
+
+SKILL 10: Integration Testing of Library Microservices
+- Implemented in: MicroserviceIntegrationTest.java
+- Features: @SpringBootTest + MockMvc end-to-end integration workflow.
+
+SKILL 11: Containerization of Microservices System
+- Implemented in: backend/Dockerfile, frontend/Dockerfile, docker-compose.yml
+- Features: Multi-stage Maven/JDK21 and Node/Nginx builds; multi-service compose network.
+
+SKILL 12: Infrastructure Setup & Deployment of Library System
+- Implemented in: terraform/main.tf (AWS), terraform/gcp_main.tf (GCP), deploy-to-gcp.bat
+- Features: Terraform Infrastructure as Code and automated Google Cloud Run scripts.
+
+================================================================================
+6. COMPLETE VERIFICATION RESULTS
+================================================================================
+1. Backend Test Suite:
+   Command: mvn test -f backend/soa-service/pom.xml
+   Results:
+     com.lumiere.soa.MicroserviceIntegrationTest: 4 passed
+     com.lumiere.soa.PaymentServiceTest: 4 passed
+     Tests run: 8, Failures: 0, Errors: 0, Skipped: 0
+     BUILD SUCCESS (Finished in ~48s)
+
+2. Frontend Build:
+   Command: npm run build --prefix frontend
+   Results:
+     Creating an optimized production build...
+     Compiled successfully.
+     0 fatal errors, 0 ESLint warnings.
+     File sizes after gzip: 204.68 kB (main.js), 17.25 kB (main.css)
+
+3. Live Google Cloud Probes:
+   GET https://soa-backend-470517179980.asia-south1.run.app/health -> HTTP 200 (UP)
+   GET https://soa-backend-470517179980.asia-south1.run.app/api/menu -> HTTP 200 (6 items)
+   POST https://soa-backend-470517179980.asia-south1.run.app/api/auth/login -> HTTP 200 (JWT token)
+   GET https://soa-frontend-470517179980.asia-south1.run.app -> HTTP 200 (React HTML served)
+
+================================================================================
+7. HOW TO PUSH & TRIGGER AUTOMATED GCP UPDATES
+================================================================================
+1. Add your repository remote (if not already set):
+   git remote set-url origin https://github.com/amanagarwal0602/SOA_Project.git
+
+2. Add your GCP Service Account Key to GitHub Repository Secrets:
+   - Go to: https://github.com/amanagarwal0602/SOA_Project/settings/secrets/actions
+   - Click "New repository secret"
+   - Name: GCP_SA_KEY
+   - Value: Paste the entire content of gcp-sa-key.json (generated in the project root)
+
+3. Push changes:
+   git add .
+   git commit -m "feat: complete soa microservices overhaul, gimmick removal and gcp deployment"
+   git push -u origin main
+
+4. GitHub Actions will automatically build and deploy both soa-backend and soa-frontend
+   to Google Cloud Run on every future push!
+================================================================================

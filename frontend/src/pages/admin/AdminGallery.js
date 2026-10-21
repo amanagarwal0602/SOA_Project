@@ -42,7 +42,8 @@ const AdminGallery = () => {
   const fetchImages = async () => {
     try {
       const response = await api.get('/gallery');
-      setImages(response.data.data || []);
+      const list = response.data?.data || (Array.isArray(response.data) ? response.data : []);
+      setImages(list);
     } catch (error) {
       toast.error('Failed to load gallery');
       setImages([]);
@@ -53,7 +54,7 @@ const AdminGallery = () => {
     e.preventDefault();
     try {
       if (editImage) {
-        await api.put(`/gallery/${editImage._id}`, formData);
+        await api.put(`/gallery/${editImage.id || editImage._id}`, formData);
         toast.success('✓ Image updated!');
       } else {
         await api.post('/gallery', formData);
@@ -81,7 +82,7 @@ const AdminGallery = () => {
 
   const togglePublish = async (image) => {
     try {
-      await api.put(`/gallery/${image._id}`, { isPublished: !image.isPublished });
+      await api.put(`/gallery/${image.id || image._id}`, { isPublished: !image.isPublished });
       toast.success(`✓ ${image.isPublished ? 'Unpublished' : 'Published'}!`);
       fetchImages();
     } catch (error) {
@@ -103,10 +104,12 @@ const AdminGallery = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map(img => (
-            <div key={img._id} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition group">
+          {images.map(img => {
+            const imgId = img.id || img._id;
+            return (
+            <div key={imgId} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition group">
               <div className="relative">
-                <img src={img.image} alt={img.title} loading="lazy" className="w-full h-48 object-cover" />
+                <img src={img.image || img.url || img.imageUrl || 'https://via.placeholder.com/400'} alt={img.title} loading="lazy" className="w-full h-48 object-cover" />
                 <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-semibold ${img.isPublished ? 'bg-green-500 text-white' : 'bg-gray-500 dark:bg-gray-600 text-white'}`}>
                   {img.isPublished ? 'Published' : 'Draft'}
                 </div>
@@ -122,13 +125,14 @@ const AdminGallery = () => {
                   <button onClick={() => { setEditImage(img); setShowModal(true); }} className="flex-1 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">
                     <FiEdit2 className="inline" /> Edit
                   </button>
-                  <button onClick={() => deleteImage(img._id)} className="flex-1 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs">
+                  <button onClick={() => deleteImage(imgId)} className="flex-1 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs">
                     <FiTrash2 className="inline" /> Delete
                   </button>
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Add/Edit Modal */}

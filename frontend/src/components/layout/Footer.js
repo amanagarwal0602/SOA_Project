@@ -39,7 +39,20 @@ const Footer = () => {
     setEditModal({ isOpen: false, type: '', data: null });
   };
 
-  const hours = contact?.openingHours || contact?.hours || {};
+  const rawHours = contact?.openingHours || contact?.hours;
+  const hours = (rawHours && typeof rawHours === 'object' && !Array.isArray(rawHours))
+    ? rawHours
+    : typeof rawHours === 'string'
+      ? { 'Daily': rawHours }
+      : {
+          monday: '7:00 AM - 8:00 PM',
+          tuesday: '7:00 AM - 8:00 PM',
+          wednesday: '7:00 AM - 8:00 PM',
+          thursday: '7:00 AM - 8:00 PM',
+          friday: '7:00 AM - 9:00 PM',
+          saturday: '8:00 AM - 9:00 PM',
+          sunday: '8:00 AM - 8:00 PM'
+        };
 
   return (
     <footer className="bg-brown-500 dark:bg-gray-900 text-white dark:text-gray-200">

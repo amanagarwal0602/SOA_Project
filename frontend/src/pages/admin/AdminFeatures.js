@@ -34,7 +34,7 @@ const AdminFeatures = () => {
     e.preventDefault();
     try {
       if (editingFeature) {
-        await api.put(`/features/${editingFeature._id}`, formData);
+        await api.put(`/features/${editingFeature.id || editingFeature._id}`, formData);
         toast.success('✓ Feature updated!');
       } else {
         await api.post('/features', formData);
@@ -104,8 +104,10 @@ const AdminFeatures = () => {
         <div className="text-center py-12">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {features.map(feature => (
-            <div key={feature._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          {features.map(feature => {
+            const featureId = feature.id || feature._id;
+            return (
+            <div key={featureId} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <div className="flex justify-between items-start mb-4">
                 <span className="text-4xl">{feature.icon}</span>
                 <div className="flex gap-2">
@@ -116,7 +118,7 @@ const AdminFeatures = () => {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(feature._id)}
+                    onClick={() => handleDelete(featureId)}
                     className="text-red-600 hover:text-red-800"
                   >
                     Delete
@@ -132,7 +134,8 @@ const AdminFeatures = () => {
                 </span>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

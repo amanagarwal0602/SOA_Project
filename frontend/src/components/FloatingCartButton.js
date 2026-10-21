@@ -4,7 +4,7 @@ import { FiShoppingBag } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 
 const FloatingCartButton = () => {
-  const { cartItems, getCartTotal, getItemCount } = useCart();
+  const { getCartTotal, getItemCount } = useCart();
   const location = useLocation();
   const itemCount = getItemCount();
   

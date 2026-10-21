@@ -90,7 +90,7 @@ const AdminMenu = () => {
     
     try {
       if (editItem) {
-        await api.put(`/menu/${editItem._id}`, submitData);
+        await api.put(`/menu/${editItem.id || editItem._id}`, submitData);
         toast.success('✓ Menu item updated!');
       } else {
         await api.post('/menu', submitData);
@@ -139,7 +139,7 @@ const AdminMenu = () => {
 
   const toggleAvailability = async (item) => {
     try {
-      await api.put(`/menu/${item._id}`, { isAvailable: !item.isAvailable });
+      await api.put(`/menu/${item.id || item._id}`, { isAvailable: !item.isAvailable });
       toast.success(`✓ ${item.isAvailable ? 'Marked unavailable' : 'Marked available'}!`, { autoClose: 2000 });
       fetchMenuItems();
     } catch (error) {
@@ -149,7 +149,7 @@ const AdminMenu = () => {
 
   const toggleHomepage = async (item) => {
     try {
-      await api.put(`/menu/${item._id}/toggle-homepage`);
+      await api.put(`/menu/${item.id || item._id}/toggle-homepage`);
       toast.success(`✓ ${item.showOnHomepage ? 'Removed from' : 'Added to'} homepage!`, { autoClose: 2000 });
       fetchMenuItems();
     } catch (error) {
@@ -182,8 +182,10 @@ const AdminMenu = () => {
           </div>
         ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {menuItems.map(item => (
-            <div key={item._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+          {menuItems.map(item => {
+            const itemId = item.id || item._id;
+            return (
+            <div key={itemId} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
               <div className="relative">
                 {item.image ? (
                   <img src={item.image} alt={item.name} loading="lazy" className="w-full h-48 object-cover" />
@@ -229,13 +231,14 @@ const AdminMenu = () => {
                   <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
                     <FiEdit2 className="inline mr-1" /> Edit
                   </button>
-                  <button onClick={() => deleteItem(item._id)} className="flex-1 px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm">
+                  <button onClick={() => deleteItem(itemId)} className="flex-1 px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm">
                     <FiTrash2 className="inline mr-1" /> Delete
                   </button>
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
         )}
 

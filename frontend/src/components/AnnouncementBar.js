@@ -31,11 +31,16 @@ const AnnouncementBar = () => {
     sessionStorage.setItem('announcementDismissed', 'true');
   };
 
-  if (!settings || !settings.announcementBar?.enabled || !visible) {
+  const bar = settings?.announcementBar;
+  const isBarEnabled = bar && bar.enabled !== false && (bar.message || bar.text);
+
+  if (!settings || !isBarEnabled || !visible) {
     return null;
   }
 
-  const { message, backgroundColor, textColor } = settings.announcementBar;
+  const message = bar.message || bar.text;
+  const backgroundColor = bar.backgroundColor || '#78350f';
+  const textColor = bar.textColor || '#ffffff';
 
   return (
     <div
