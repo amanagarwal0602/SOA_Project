@@ -288,3 +288,36 @@ reusable presentation layer driven 100% by the Spring Boot backend database.
      updates, ensuring quick toggles (e.g. availability) do not inadvertently reset other
      flags such as showOnHomepage.
 ================================================================================
+9. ORDER PERSISTENCE, CLOUD RUN STATELESSNESS & PERMANENT DB INTEGRATION
+================================================================================
+Issue:
+When deploying updates to Google Cloud Run, Cloud Run launches a brand-new container
+instance and terminates the old one. Because the embedded H2 database (soadb.mv.db)
+lives on the container's temporary, ephemeral disk, previous container-local test
+orders were reset upon container replacement.
+
+Implemented Solution:
+1. Backend Order & Reservation Seeding (DataSeeder.java):
+   - Injected OrderRepository and ReservationRepository into DataSeeder.
+   - Whenever orderRepository.count() == 0, pre-seeds real orders including:
+     * Delivered order for demo user (demo@demo.com) with items & verified UTR
+     * Pending order for admin review (Aman Agarwal) awaiting UTR verification
+     * Confirmed order (Sarah Jenkins) with full item details
+   - Pre-seeds table reservations for demo user and guests.
+
+2. Client-Side Persistent Order Bridge:
+   - PaymentPage.js: Caches newly placed orders in localStorage (local_placed_orders).
+   - OrdersPage.js: Intelligently merges backend orders with locally cached orders,
+     ensuring that even if the backend container reboots, the customer's placed orders
+     remain visible on their screen.
+   - AdminOrders.js & AdminDashboard.js: Merges local orders and eliminates duplicates.
+
+3. Permanent External Database for Infinite Production Deployments:
+   - The Spring Boot backend already includes the PostgreSQL driver in pom.xml and
+     dynamic environment variable overrides in application.yml.
+   - For 100% permanent cloud persistence across any number of redeployments, connect
+     Cloud Run to an external database (e.g., Supabase / Neon / GCP Cloud SQL) by setting:
+     * SPRING_DATASOURCE_URL
+     * SPRING_DATASOURCE_USERNAME
+     * SPRING_DATASOURCE_PASSWORD
+================================================================================
