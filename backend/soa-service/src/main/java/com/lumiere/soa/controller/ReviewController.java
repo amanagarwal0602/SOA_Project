@@ -38,19 +38,19 @@ public class ReviewController {
         });
     }
 
-    @GetMapping("/api/reviews")
+    @GetMapping({"/api/reviews", "/reviews"})
     public ResponseEntity<?> getPublicReviews() {
         List<Review> reviews = reviewRepository.findByIsPublishedTrueOrderByCreatedAtDesc();
         return ResponseEntity.ok(Map.of("data", Map.of("reviews", reviews)));
     }
 
-    @GetMapping("/api/admin/reviews")
+    @GetMapping({"/api/admin/reviews", "/admin/reviews"})
     public ResponseEntity<?> getAdminReviews() {
         List<Review> reviews = reviewRepository.findAllByOrderByCreatedAtDesc();
         return ResponseEntity.ok(Map.of("data", reviews));
     }
 
-    @PostMapping("/api/reviews")
+    @PostMapping({"/api/reviews", "/reviews"})
     public ResponseEntity<?> createReview(@RequestBody Map<String, Object> body) {
         String id = body.get("id") != null ? body.get("id").toString() : "review_" + System.currentTimeMillis();
         String menuItemId = (String) (body.get("menuItem") != null ? body.get("menuItem") :
@@ -89,7 +89,7 @@ public class ReviewController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @PutMapping("/api/reviews/{id}")
+    @PutMapping({"/api/reviews/{id}", "/reviews/{id}"})
     public ResponseEntity<?> updateReview(@PathVariable String id, @RequestBody Map<String, Object> body) {
         Optional<Review> existingOpt = reviewRepository.findById(id);
         Review existing;
@@ -120,7 +120,7 @@ public class ReviewController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @PutMapping("/api/reviews/{id}/toggle-homepage")
+    @PutMapping({"/api/reviews/{id}/toggle-homepage", "/api/admin/reviews/{id}/toggle-homepage", "/reviews/{id}/toggle-homepage", "/admin/reviews/{id}/toggle-homepage"})
     public ResponseEntity<?> toggleHomepage(@PathVariable String id) {
         Optional<Review> revOpt = reviewRepository.findById(id);
         if (revOpt.isPresent()) {
@@ -132,7 +132,7 @@ public class ReviewController {
         return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/api/reviews/{id}/respond")
+    @PutMapping({"/api/reviews/{id}/respond", "/reviews/{id}/respond"})
     public ResponseEntity<?> respondReview(@PathVariable String id, @RequestBody Map<String, String> body) {
         Optional<Review> revOpt = reviewRepository.findById(id);
         if (revOpt.isPresent()) {
@@ -144,7 +144,7 @@ public class ReviewController {
         return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/api/admin/reviews/{id}/toggle-publish")
+    @PutMapping({"/api/admin/reviews/{id}/toggle-publish", "/api/reviews/{id}/toggle-publish", "/admin/reviews/{id}/toggle-publish", "/reviews/{id}/toggle-publish"})
     public ResponseEntity<?> togglePublish(@PathVariable String id) {
         Optional<Review> revOpt = reviewRepository.findById(id);
         if (revOpt.isPresent()) {
@@ -156,7 +156,7 @@ public class ReviewController {
         return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/api/reviews/{id}")
+    @DeleteMapping({"/api/reviews/{id}", "/api/admin/reviews/{id}", "/reviews/{id}", "/admin/reviews/{id}"})
     public ResponseEntity<?> deleteReview(@PathVariable String id) {
         Optional<Review> opt = reviewRepository.findById(id);
         reviewRepository.deleteById(id);

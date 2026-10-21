@@ -19,13 +19,13 @@ public class FeatureController {
         this.featureRepository = featureRepository;
     }
 
-    @GetMapping({"/api/features", "/api/features/all"})
+    @GetMapping({"/api/features", "/api/features/all", "/features", "/features/all"})
     public ResponseEntity<List<Feature>> getFeatures() {
         List<Feature> list = featureRepository.findAllByOrderByDisplayOrderAsc();
         return ResponseEntity.ok(list);
     }
 
-    @PostMapping("/api/features")
+    @PostMapping({"/api/features", "/features"})
     public ResponseEntity<?> createFeature(@RequestBody Feature feature) {
         if (feature.getId() == null || feature.getId().isBlank()) {
             feature.setId("feature_" + System.currentTimeMillis());
@@ -34,7 +34,7 @@ public class FeatureController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @PutMapping("/api/features/{id}")
+    @PutMapping({"/api/features/{id}", "/features/{id}"})
     public ResponseEntity<?> updateFeature(@PathVariable String id, @RequestBody Feature updated) {
         Optional<Feature> opt = featureRepository.findById(id);
         if (opt.isEmpty()) {
@@ -53,7 +53,7 @@ public class FeatureController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @DeleteMapping("/api/features/{id}")
+    @DeleteMapping({"/api/features/{id}", "/features/{id}"})
     public ResponseEntity<?> deleteFeature(@PathVariable String id) {
         featureRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("data", Map.of("id", id, "deleted", true)));

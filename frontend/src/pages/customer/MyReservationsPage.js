@@ -29,6 +29,26 @@ const MyReservationsPage = () => {
         }
         return false;
       });
+
+      // Merge with locally stored reservations
+      try {
+        const localList = JSON.parse(localStorage.getItem('local_reservations') || '[]');
+        const matchingLocal = localList.filter(res => {
+          if (userId && (res.userId === userId || res.user_id === userId)) return true;
+          if (userEmail) {
+            const emailCandidates = [res.guestEmail, res.guest_email, res.email, res.userEmail, res.user_email];
+            return emailCandidates.some(e => e && e.toLowerCase() === userEmail);
+          }
+          return false;
+        });
+        for (const lr of matchingLocal) {
+          if (!userReservations.some(r => r.id === lr.id || (r.date === lr.date && r.timeSlot === lr.timeSlot))) {
+            userReservations.unshift(lr);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not read local_reservations', err);
+      }
       
       setReservations(userReservations);
     } catch (error) {

@@ -45,13 +45,13 @@ public class TodaysOfferController {
         } catch (Exception ignored) {}
     }
 
-    @GetMapping({"/api/todays-offers", "/api/todays-offers/all"})
+    @GetMapping({"/api/todays-offers", "/api/todays-offers/all", "/todays-offers", "/todays-offers/all"})
     public ResponseEntity<?> getOffers() {
         List<Map<String, Object>> list = getOffersList();
         return ResponseEntity.ok(Map.of("data", list));
     }
 
-    @PostMapping("/api/todays-offers")
+    @PostMapping({"/api/todays-offers", "/todays-offers"})
     public ResponseEntity<?> createOffer(@RequestBody Map<String, Object> offer) {
         List<Map<String, Object>> list = getOffersList();
         String id = offer.get("id") != null ? offer.get("id").toString() : "offer_" + System.currentTimeMillis();
@@ -67,7 +67,7 @@ public class TodaysOfferController {
         return ResponseEntity.ok(Map.of("data", offer));
     }
 
-    @PutMapping("/api/todays-offers/{id}")
+    @PutMapping({"/api/todays-offers/{id}", "/todays-offers/{id}"})
     public ResponseEntity<?> updateOffer(@PathVariable String id, @RequestBody Map<String, Object> updates) {
         List<Map<String, Object>> list = getOffersList();
         Map<String, Object> found = null;
@@ -86,7 +86,7 @@ public class TodaysOfferController {
         return ResponseEntity.notFound().build();
     }
 
-    @PatchMapping("/api/todays-offers/{id}/toggle")
+    @PatchMapping({"/api/todays-offers/{id}/toggle", "/todays-offers/{id}/toggle"})
     public ResponseEntity<?> toggleOffer(@PathVariable String id) {
         List<Map<String, Object>> list = getOffersList();
         Map<String, Object> found = null;
@@ -107,7 +107,7 @@ public class TodaysOfferController {
         return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/api/todays-offers/{id}")
+    @DeleteMapping({"/api/todays-offers/{id}", "/todays-offers/{id}"})
     public ResponseEntity<?> deleteOffer(@PathVariable String id) {
         List<Map<String, Object>> list = getOffersList();
         list.removeIf(item -> id.equals(item.get("id")) || id.equals(item.get("_id")));

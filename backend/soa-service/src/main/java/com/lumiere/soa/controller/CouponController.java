@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/coupons")
+@RequestMapping({"/api/coupons", "/coupons"})
 @CrossOrigin(origins = "*")
 public class CouponController {
 

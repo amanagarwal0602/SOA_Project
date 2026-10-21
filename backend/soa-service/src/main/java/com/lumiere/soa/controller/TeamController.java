@@ -19,13 +19,13 @@ public class TeamController {
         this.teamRepository = teamRepository;
     }
 
-    @GetMapping({"/api/team", "/api/team/all"})
+    @GetMapping({"/api/team", "/api/team/all", "/team", "/team/all"})
     public ResponseEntity<List<TeamMember>> getTeam() {
         List<TeamMember> list = teamRepository.findAllByOrderByDisplayOrderAsc();
         return ResponseEntity.ok(list);
     }
 
-    @PostMapping("/api/team")
+    @PostMapping({"/api/team", "/team"})
     public ResponseEntity<?> createTeamMember(@RequestBody Map<String, Object> body) {
         String id = body.get("id") != null ? body.get("id").toString() : "team_" + System.currentTimeMillis();
         String name = (String) body.get("name");
@@ -55,7 +55,7 @@ public class TeamController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @PutMapping("/api/team/{id}")
+    @PutMapping({"/api/team/{id}", "/team/{id}"})
     public ResponseEntity<?> updateTeamMember(@PathVariable String id, @RequestBody Map<String, Object> body) {
         Optional<TeamMember> opt = teamRepository.findById(id);
         TeamMember existing;
@@ -80,7 +80,7 @@ public class TeamController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @PutMapping("/api/team/{id}/toggle-about")
+    @PutMapping({"/api/team/{id}/toggle-about", "/team/{id}/toggle-about"})
     public ResponseEntity<?> toggleAbout(@PathVariable String id) {
         Optional<TeamMember> opt = teamRepository.findById(id);
         if (opt.isPresent()) {
@@ -92,7 +92,7 @@ public class TeamController {
         return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/api/team/{id}")
+    @DeleteMapping({"/api/team/{id}", "/team/{id}"})
     public ResponseEntity<?> deleteTeamMember(@PathVariable String id) {
         teamRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("data", Map.of("id", id, "deleted", true)));

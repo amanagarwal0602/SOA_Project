@@ -48,9 +48,30 @@ const ReservationPage = () => {
         specialRequests: formData.specialRequests,
         special_requests: formData.specialRequests
       };
-      await api.post('/reservations', payload);
+      const response = await api.post('/reservations', payload);
+      
+      // Cache reservation locally for offline/reboot safety
+      try {
+        const savedRes = response.data?.data || payload;
+        const localList = JSON.parse(localStorage.getItem('local_reservations') || '[]');
+        localList.unshift({
+          ...payload,
+          ...savedRes,
+          id: savedRes.id || `res_${Date.now()}`,
+          status: 'confirmed',
+          createdAt: new Date().toISOString()
+        });
+        localStorage.setItem('local_reservations', JSON.stringify(localList));
+      } catch (err) {
+        console.warn('Could not cache reservation locally', err);
+      }
+
       toast.success('✓ Reservation created successfully!');
-      setTimeout(() => navigate('/customer/reservations'), 1500);
+      if (user) {
+        setTimeout(() => navigate('/customer/reservations'), 1500);
+      } else {
+        setTimeout(() => navigate('/'), 2000);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create reservation');
     }

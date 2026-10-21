@@ -16,7 +16,18 @@ const AdminReservations = () => {
     try {
       setLoading(true);
       const response = await api.get('/admin/reservations');
-      setReservations(response.data.data || response.data || []);
+      let resList = response.data.data || response.data || [];
+      try {
+        const localList = JSON.parse(localStorage.getItem('local_reservations') || '[]');
+        for (const lr of localList) {
+          if (!resList.some(r => r.id === lr.id || (r.date === lr.date && r.timeSlot === lr.timeSlot))) {
+            resList.unshift(lr);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not read local_reservations in admin', err);
+      }
+      setReservations(resList);
     } catch (error) {
       toast.error('Failed to load reservations');
       setReservations([]);

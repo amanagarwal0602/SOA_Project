@@ -25,7 +25,7 @@ public class OrderController {
         this.objectMapper = objectMapper;
     }
 
-    @GetMapping({"/api/orders", "/api/admin/orders"})
+    @GetMapping({"/api/orders", "/api/admin/orders", "/orders", "/admin/orders"})
     public ResponseEntity<?> getOrders(@RequestParam(required = false) String userId) {
         List<Order> orders;
         if (userId != null && !userId.isBlank()) {
@@ -103,7 +103,7 @@ public class OrderController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @PutMapping({"/api/orders/{id}", "/api/orders/{id}/status", "/api/admin/orders/{id}/status"})
+    @PutMapping({"/api/orders/{id}", "/api/orders/{id}/status", "/api/admin/orders/{id}/status", "/orders/{id}", "/orders/{id}/status", "/admin/orders/{id}/status"})
     public ResponseEntity<?> updateOrder(@PathVariable String id, @RequestBody Map<String, Object> updates) {
         Optional<Order> orderOpt = orderRepository.findById(id);
         if (orderOpt.isEmpty()) {
@@ -127,7 +127,7 @@ public class OrderController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @PutMapping({"/api/orders/{id}/verify-payment", "/api/admin/orders/{id}/verify-payment"})
+    @PutMapping({"/api/orders/{id}/verify-payment", "/api/admin/orders/{id}/verify-payment", "/orders/{id}/verify-payment", "/admin/orders/{id}/verify-payment"})
     public ResponseEntity<?> verifyPayment(@PathVariable String id) {
         Optional<Order> orderOpt = orderRepository.findById(id);
         if (orderOpt.isEmpty()) {
@@ -140,7 +140,7 @@ public class OrderController {
         return ResponseEntity.ok(Map.of("data", saved, "success", true));
     }
 
-    @PutMapping("/api/orders/{id}/complete")
+    @PutMapping({"/api/orders/{id}/complete", "/orders/{id}/complete"})
     public ResponseEntity<?> completeOrder(@PathVariable String id) {
         Optional<Order> orderOpt = orderRepository.findById(id);
         if (orderOpt.isEmpty()) {
@@ -153,7 +153,7 @@ public class OrderController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @DeleteMapping("/api/orders/{id}")
+    @DeleteMapping({"/api/orders/{id}", "/orders/{id}"})
     public ResponseEntity<?> deleteOrder(@PathVariable String id) {
         orderRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("data", Map.of("id", id, "deleted", true)));

@@ -30,7 +30,7 @@ public class AuthController {
 
     // --- Skill 4: Token-Based Authentication ---
 
-    @PostMapping({"/api/auth/login", "/login"})
+    @PostMapping({"/api/auth/login", "/auth/login", "/login"})
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String identifier = credentials.get("email");
         if (identifier == null || identifier.isBlank()) {
@@ -126,7 +126,7 @@ public class AuthController {
 
     // --- Skill 3: User Registration System with Validation ---
 
-    @PostMapping({"/api/auth/register", "/signup"})
+    @PostMapping({"/api/auth/register", "/auth/register", "/signup", "/register"})
     public ResponseEntity<?> register(@RequestBody Map<String, Object> userData) {
         String email = (String) userData.get("email");
         String password = (String) userData.get("password");
@@ -202,7 +202,7 @@ public class AuthController {
 
     // --- Token Validation & User Info ---
 
-    @GetMapping({"/api/auth/me", "/api/auth/current-user"})
+    @GetMapping({"/api/auth/me", "/auth/me", "/api/auth/current-user", "/auth/current-user"})
     public ResponseEntity<?> getCurrentUser(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Unauthorized"));

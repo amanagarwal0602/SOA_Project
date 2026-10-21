@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/gallery")
+@RequestMapping({"/api/gallery", "/gallery"})
 @CrossOrigin(origins = "*")
 public class GalleryController {
 

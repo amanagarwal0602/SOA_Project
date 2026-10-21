@@ -61,7 +61,7 @@ public class ContentController {
 
     // --- Hero ---
 
-    @GetMapping("/api/hero")
+    @GetMapping({"/api/hero", "/hero"})
     public ResponseEntity<Map<String, Object>> getHero() {
         Map<String, Object> defaults = new HashMap<>();
         defaults.put("title", "Authentic Culinary Experience");
@@ -80,7 +80,7 @@ public class ContentController {
         return ResponseEntity.ok(getContent("hero", defaults));
     }
 
-    @PutMapping("/api/hero")
+    @PutMapping({"/api/hero", "/hero"})
     public ResponseEntity<?> updateHero(@RequestBody Map<String, Object> data) {
         saveContent("hero", data);
         return ResponseEntity.ok(Map.of("data", data));
@@ -88,7 +88,7 @@ public class ContentController {
 
     // --- About ---
 
-    @GetMapping("/api/about")
+    @GetMapping({"/api/about", "/about"})
     public ResponseEntity<Map<String, Object>> getAbout() {
         Map<String, Object> defaults = new HashMap<>();
         defaults.put("title", "Our Story & Tradition");
@@ -104,7 +104,7 @@ public class ContentController {
         return ResponseEntity.ok(getContent("about", defaults));
     }
 
-    @PutMapping("/api/about")
+    @PutMapping({"/api/about", "/about"})
     public ResponseEntity<?> updateAbout(@RequestBody Map<String, Object> data) {
         saveContent("about", data);
         return ResponseEntity.ok(Map.of("data", data));
@@ -112,7 +112,7 @@ public class ContentController {
 
     // --- Contact Info ---
 
-    @GetMapping("/api/contact-info")
+    @GetMapping({"/api/contact-info", "/contact-info"})
     public ResponseEntity<Map<String, Object>> getContactInfo() {
         Map<String, Object> defaults = new HashMap<>();
         defaults.put("cafeName", "Lumière Café & Bistro");
@@ -148,7 +148,7 @@ public class ContentController {
         return ResponseEntity.ok(getContent("contact_info", defaults));
     }
 
-    @PutMapping("/api/contact-info")
+    @PutMapping({"/api/contact-info", "/contact-info"})
     public ResponseEntity<?> updateContactInfo(@RequestBody Map<String, Object> data) {
         saveContent("contact_info", data);
         return ResponseEntity.ok(Map.of("data", data));
@@ -156,7 +156,7 @@ public class ContentController {
 
     // --- Contact Messages ---
 
-    @PostMapping("/api/contact-info/send-message")
+    @PostMapping({"/api/contact-info/send-message", "/contact-info/send-message", "/api/contact-info/messages", "/contact-info/messages"})
     public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> data) {
         ContactMessage msg = ContactMessage.builder()
                 .id("msg_" + System.currentTimeMillis())
@@ -176,13 +176,13 @@ public class ContentController {
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("/api/contact-info/messages")
+    @GetMapping({"/api/contact-info/messages", "/contact-info/messages"})
     public ResponseEntity<?> getContactMessages() {
         List<ContactMessage> messages = contactMessageRepository.findAllByOrderByCreatedAtDesc();
         return ResponseEntity.ok(Map.of("data", Map.of("messages", messages)));
     }
 
-    @PutMapping("/api/contact-info/messages/{id}")
+    @PutMapping({"/api/contact-info/messages/{id}", "/contact-info/messages/{id}"})
     public ResponseEntity<?> updateMessageStatus(@PathVariable String id, @RequestBody Map<String, Object> body) {
         Optional<ContactMessage> msgOpt = contactMessageRepository.findById(id);
         if (msgOpt.isPresent()) {
@@ -197,7 +197,7 @@ public class ContentController {
         return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/api/contact-info/messages/{id}")
+    @DeleteMapping({"/api/contact-info/messages/{id}", "/contact-info/messages/{id}"})
     public ResponseEntity<?> deleteContactMessage(@PathVariable String id) {
         contactMessageRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("data", Map.of("id", id, "deleted", true)));
@@ -205,7 +205,7 @@ public class ContentController {
 
     // --- Site Settings ---
 
-    @GetMapping("/api/site-settings")
+    @GetMapping({"/api/site-settings", "/site-settings"})
     public ResponseEntity<Map<String, Object>> getSiteSettings() {
         Map<String, Object> defaults = new HashMap<>();
         defaults.put("siteName", "Lumière Café");
@@ -227,7 +227,7 @@ public class ContentController {
         return ResponseEntity.ok(getContent("site_settings", defaults));
     }
 
-    @PutMapping("/api/site-settings")
+    @PutMapping({"/api/site-settings", "/site-settings"})
     public ResponseEntity<?> updateSiteSettings(@RequestBody Map<String, Object> data) {
         saveContent("site_settings", data);
         return ResponseEntity.ok(Map.of("data", data));
@@ -255,7 +255,7 @@ public class ContentController {
 
     // --- Navigation & Social Links (for EditModal) ---
 
-    @GetMapping("/api/navigation")
+    @GetMapping({"/api/navigation", "/navigation"})
     public ResponseEntity<?> getNavigation() {
         Map<String, Object> defaults = new HashMap<>();
         defaults.put("links", List.of(
@@ -269,13 +269,13 @@ public class ContentController {
         return ResponseEntity.ok(getContent("navigation", defaults));
     }
 
-    @PutMapping("/api/navigation")
+    @PutMapping({"/api/navigation", "/navigation"})
     public ResponseEntity<?> updateNavigation(@RequestBody Map<String, Object> data) {
         saveContent("navigation", data);
         return ResponseEntity.ok(Map.of("data", data));
     }
 
-    @GetMapping("/api/social-links")
+    @GetMapping({"/api/social-links", "/social-links"})
     public ResponseEntity<?> getSocialLinks() {
         Map<String, Object> defaults = new HashMap<>();
         defaults.put("facebook", "https://facebook.com/lumierecafe");
@@ -284,7 +284,7 @@ public class ContentController {
         return ResponseEntity.ok(getContent("social_links", defaults));
     }
 
-    @PutMapping("/api/social-links")
+    @PutMapping({"/api/social-links", "/social-links"})
     public ResponseEntity<?> updateSocialLinks(@RequestBody Map<String, Object> data) {
         saveContent("social_links", data);
         return ResponseEntity.ok(Map.of("data", data));

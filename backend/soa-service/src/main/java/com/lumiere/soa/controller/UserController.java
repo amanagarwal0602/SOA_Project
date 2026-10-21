@@ -53,7 +53,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("data", Map.of("users", users)));
     }
 
-    @PostMapping("/api/admin/users")
+    @PostMapping({"/api/admin/users", "/api/users", "/admin/users", "/users"})
     public ResponseEntity<?> createUser(@RequestBody User user) {
         if (user.getId() == null || user.getId().isBlank()) {
             user.setId("user_" + System.currentTimeMillis());
@@ -106,7 +106,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("data", saved, "success", true));
     }
 
-    @PutMapping("/api/users/{id}")
+    @PutMapping({"/api/users/{id}", "/users/{id}"})
     public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody Map<String, Object> updates) {
         Optional<User> opt = userRepository.findById(id);
         User existing;
@@ -165,7 +165,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("data", saved, "success", true));
     }
 
-    @DeleteMapping("/api/users/{id}")
+    @DeleteMapping({"/api/users/{id}", "/users/{id}"})
     public ResponseEntity<?> deleteUser(@PathVariable String id) {
         userRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("data", Map.of("id", id, "deleted", true)));

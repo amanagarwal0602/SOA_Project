@@ -30,7 +30,7 @@ public class ReservationController {
         return ResponseEntity.ok(Map.of("data", list));
     }
 
-    @PostMapping("/api/reservations")
+    @PostMapping({"/api/reservations", "/reservations"})
     public ResponseEntity<?> createReservation(@RequestBody Map<String, Object> data) {
         int guests = 2;
         if (data.get("numberOfGuests") != null) {
@@ -72,7 +72,7 @@ public class ReservationController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @PutMapping({"/api/reservations/{id}", "/api/reservations/{id}/status", "/api/admin/reservations/{id}/status"})
+    @PutMapping({"/api/reservations/{id}", "/api/reservations/{id}/status", "/api/admin/reservations/{id}/status", "/reservations/{id}", "/reservations/{id}/status", "/admin/reservations/{id}/status"})
     public ResponseEntity<?> updateReservation(@PathVariable String id, @RequestBody Map<String, Object> updates) {
         Optional<Reservation> resOpt = reservationRepository.findById(id);
         if (resOpt.isEmpty()) {
@@ -92,7 +92,7 @@ public class ReservationController {
         return ResponseEntity.ok(Map.of("data", saved));
     }
 
-    @DeleteMapping("/api/reservations/{id}")
+    @DeleteMapping({"/api/reservations/{id}", "/reservations/{id}"})
     public ResponseEntity<?> deleteReservation(@PathVariable String id) {
         reservationRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("data", Map.of("id", id, "deleted", true)));

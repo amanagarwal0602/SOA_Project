@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * Skill 1: Designing a Food Delivery SOA System — Restaurant Menu Catalog
  */
 @RestController
-@RequestMapping("/api/menu")
+@RequestMapping({"/api/menu", "/menu"})
 @CrossOrigin(origins = "*")
 public class MenuController {
 
