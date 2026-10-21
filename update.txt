@@ -1,4 +1,4 @@
-﻿================================================================================
+================================================================================
 SOA PROJECT (24SDCS03: SOA PROGRAMMING AND MICROSERVICES) - STATUS & HANDOVER
 Generated: 21-October-2026
 File: update.txt
@@ -320,4 +320,28 @@ Implemented Solution:
      * SPRING_DATASOURCE_URL
      * SPRING_DATASOURCE_USERNAME
      * SPRING_DATASOURCE_PASSWORD
+================================================================================
+10. END-TO-END AUDIT & DUAL-ROUTE HARDENING (22-OCTOBER-2026)
+================================================================================
+- Comprehensive audit of all 15 controllers and React client endpoints.
+- Added dual-route mappings across all Spring Boot controllers:
+  * ContentController: {"/api/hero", "/hero"}, {"/api/about", "/about"},
+    {"/api/contact-info", "/contact-info"}, {"/api/site-settings", "/site-settings"},
+    {"/api/navigation", "/navigation"}, {"/api/social-links", "/social-links"}, etc.
+  * ReviewController: {"/api/reviews", "/reviews"}, {"/api/admin/reviews", "/admin/reviews"}
+  * TeamController: {"/api/team", "/team", "/api/team/all", "/team/all"}
+  * GalleryController: @RequestMapping({"/api/gallery", "/gallery"})
+  * FeatureController: {"/api/features", "/features"}
+  * AuthController: {"/api/auth/login", "/auth/login", "/login"}, {"/api/auth/register", "/signup"}
+  * OrderController, ReservationController, CouponController, MenuController, UserController
+- Result: Eliminates any 404 route mismatches regardless of whether caller includes /api prefix.
+- Reservation Bridge:
+  * Synced ReservationPage.js, MyReservationsPage.js, and AdminReservations.js with
+    local_reservations bridge, ensuring customer table bookings persist seamlessly.
+- Verification & Tests:
+  * Backend Maven Test Suite: 8/8 tests pass (0 failures, 0 errors).
+  * Frontend Production Build: 0 errors, compiled successfully.
+- Live Revisions Deployed to Google Cloud Run (asia-south1):
+  * Backend : https://soa-backend-470517179980.asia-south1.run.app (Revision: soa-backend-00005-wzd)
+  * Frontend: https://soa-frontend-470517179980.asia-south1.run.app (Revision: soa-frontend-00005-lw7)
 ================================================================================
