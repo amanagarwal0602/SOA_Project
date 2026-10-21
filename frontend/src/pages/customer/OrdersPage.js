@@ -50,6 +50,31 @@ const OrdersPage = () => {
         }
         return false;
       });
+
+      // Merge with locally cached orders so placed orders are never lost across redeployments
+      try {
+        const storedOrders = JSON.parse(localStorage.getItem('local_placed_orders') || '[]');
+        const matchingLocalOrders = storedOrders.filter(order => {
+          if (!user) return true;
+          if (userId && (order.userId === userId || order.user_id === userId)) return true;
+          if (userEmail) {
+            const emails = [order.customerEmail, order.customer_email, order.userEmail, order.user_email, order.email];
+            return emails.some(e => e && e.toLowerCase() === userEmail);
+          }
+          return false;
+        });
+        for (const localOrd of matchingLocalOrders) {
+          const alreadyPresent = userOrders.some(bo => 
+            (localOrd.id && (bo.id === localOrd.id || bo._id === localOrd.id)) ||
+            (localOrd.utrNumber && bo.utrNumber === localOrd.utrNumber)
+          );
+          if (!alreadyPresent) {
+            userOrders.unshift(localOrd);
+          }
+        }
+      } catch (e) {
+        console.warn('Could not read local_placed_orders', e);
+      }
       
       // Filter reservations to show only current user's reservations
       const userReservations = reservationsData.filter(res => {

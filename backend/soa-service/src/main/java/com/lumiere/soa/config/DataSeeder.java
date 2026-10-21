@@ -19,6 +19,8 @@ public class DataSeeder implements CommandLineRunner {
     private final GalleryRepository galleryRepository;
     private final BookRepository bookRepository;
     private final CafeContentRepository cafeContentRepository;
+    private final OrderRepository orderRepository;
+    private final ReservationRepository reservationRepository;
 
     public DataSeeder(UserRepository userRepository,
                       MenuItemRepository menuItemRepository,
@@ -28,7 +30,9 @@ public class DataSeeder implements CommandLineRunner {
                       ReviewRepository reviewRepository,
                       GalleryRepository galleryRepository,
                       BookRepository bookRepository,
-                      CafeContentRepository cafeContentRepository) {
+                      CafeContentRepository cafeContentRepository,
+                      OrderRepository orderRepository,
+                      ReservationRepository reservationRepository) {
         this.userRepository = userRepository;
         this.menuItemRepository = menuItemRepository;
         this.couponRepository = couponRepository;
@@ -38,25 +42,32 @@ public class DataSeeder implements CommandLineRunner {
         this.galleryRepository = galleryRepository;
         this.bookRepository = bookRepository;
         this.cafeContentRepository = cafeContentRepository;
+        this.orderRepository = orderRepository;
+        this.reservationRepository = reservationRepository;
     }
 
     @Override
     public void run(String... args) {
-        if (cafeContentRepository.existsById("system_seeded_v1")) {
-            return; // Database already seeded. Preserve admin deletions, edits, and modifications.
+        if (!cafeContentRepository.existsById("system_seeded_v2")) {
+            seedUsers();
+            seedMenuItems();
+            seedCoupons();
+            seedFeatures();
+            seedTeam();
+            seedReviews();
+            seedGallery();
+            seedBooks();
+            cafeContentRepository.save(CafeContent.builder()
+                    .contentKey("system_seeded_v2")
+                    .contentJson("{\"seeded\":true}")
+                    .build());
         }
-        seedUsers();
-        seedMenuItems();
-        seedCoupons();
-        seedFeatures();
-        seedTeam();
-        seedReviews();
-        seedGallery();
-        seedBooks();
-        cafeContentRepository.save(CafeContent.builder()
-                .contentKey("system_seeded_v1")
-                .contentJson("{\"seeded\":true}")
-                .build());
+        if (orderRepository.count() == 0) {
+            seedOrders();
+        }
+        if (reservationRepository.count() == 0) {
+            seedReservations();
+        }
     }
 
     private void seedUsers() {
@@ -222,6 +233,111 @@ public class DataSeeder implements CommandLineRunner {
                 new Book(3L, "Designing Data-Intensive Applications", 55.00, "Martin Kleppmann")
             );
             bookRepository.saveAll(books);
+        }
+    }
+
+    private void seedOrders() {
+        if (orderRepository.count() == 0) {
+            String itemsJson1 = "[{\"id\":\"menu001\",\"name\":\"Margherita Pizza\",\"price\":14.99,\"quantity\":1,\"image\":\"https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=500&h=350&fit=crop\"},{\"id\":\"menu003\",\"name\":\"Artisanal Flat White\",\"price\":5.50,\"quantity\":1,\"image\":\"https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=500&h=350&fit=crop\"}]";
+            String itemsJson2 = "[{\"id\":\"menu002\",\"name\":\"Truffle Mushroom Risotto\",\"price\":18.50,\"quantity\":1,\"image\":\"https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?w=500&h=350&fit=crop\"},{\"id\":\"menu004\",\"name\":\"Belgian Chocolate Soufflé\",\"price\":9.00,\"quantity\":1,\"image\":\"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&h=350&fit=crop\"}]";
+            String itemsJson3 = "[{\"id\":\"menu005\",\"name\":\"Mediterranean Falafel Bowl\",\"price\":13.25,\"quantity\":1,\"image\":\"https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500&h=350&fit=crop\"},{\"id\":\"menu006\",\"name\":\"Cold Brew Tonic\",\"price\":6.00,\"quantity\":1,\"image\":\"https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=500&h=350&fit=crop\"}]";
+
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+            List<Order> orders = List.of(
+                Order.builder()
+                    .id("ord001")
+                    .orderNumber("ORD-1001")
+                    .userId("demo001")
+                    .userName("Demo User")
+                    .userEmail("demo@demo.com")
+                    .userPhone("+91-98765-43210")
+                    .items(itemsJson1)
+                    .totalPrice(20.49)
+                    .deliveryAddress("456 Demo Street, Bandra West, Mumbai 400050")
+                    .paymentMethod("UPI")
+                    .paymentStatus("paid")
+                    .utrNumber("UPI982347102938")
+                    .transactionId("TXN_1001_982347")
+                    .status("delivered")
+                    .createdAt(now.minusHours(3).toString())
+                    .build(),
+
+                Order.builder()
+                    .id("ord002")
+                    .orderNumber("ORD-1002")
+                    .userId("user_aman")
+                    .userName("Aman Agarwal")
+                    .userEmail("aman@example.com")
+                    .userPhone("+91-98765-11223")
+                    .items(itemsJson2)
+                    .totalPrice(27.50)
+                    .deliveryAddress("Suite 402, Sea Green Heights, Worli, Mumbai 400018")
+                    .paymentMethod("UPI")
+                    .paymentStatus("pending")
+                    .utrNumber("UPI837492019283")
+                    .transactionId("TXN_1002_837492")
+                    .status("pending")
+                    .createdAt(now.minusMinutes(25).toString())
+                    .build(),
+
+                Order.builder()
+                    .id("ord003")
+                    .orderNumber("ORD-1003")
+                    .userId("user_sarah")
+                    .userName("Sarah Jenkins")
+                    .userEmail("sarah.j@example.com")
+                    .userPhone("+91-98765-55443")
+                    .items(itemsJson3)
+                    .totalPrice(19.25)
+                    .deliveryAddress("Bungalow 7, Pali Hill, Mumbai 400050")
+                    .paymentMethod("UPI")
+                    .paymentStatus("paid")
+                    .utrNumber("UPI492018472910")
+                    .transactionId("TXN_1003_492018")
+                    .status("confirmed")
+                    .createdAt(now.minusMinutes(50).toString())
+                    .build()
+            );
+            orderRepository.saveAll(orders);
+        }
+    }
+
+    private void seedReservations() {
+        if (reservationRepository.count() == 0) {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            List<Reservation> reservations = List.of(
+                Reservation.builder()
+                    .id("res001")
+                    .userId("demo001")
+                    .guestName("Demo User")
+                    .guestEmail("demo@demo.com")
+                    .guestPhone("+91-98765-43210")
+                    .numberOfGuests(2)
+                    .date(java.time.LocalDate.now().plusDays(2).toString())
+                    .timeSlot("19:30")
+                    .specialRequests("Window booth table preferred")
+                    .status("confirmed")
+                    .tableNumber(4)
+                    .createdAt(now.minusHours(5).toString())
+                    .build(),
+
+                Reservation.builder()
+                    .id("res002")
+                    .userId("user_aman")
+                    .guestName("Aman Agarwal")
+                    .guestEmail("aman@example.com")
+                    .guestPhone("+91-98765-11223")
+                    .numberOfGuests(4)
+                    .date(java.time.LocalDate.now().plusDays(3).toString())
+                    .timeSlot("20:00")
+                    .specialRequests("Celebrating anniversary - quiet corner table")
+                    .status("confirmed")
+                    .tableNumber(12)
+                    .createdAt(now.minusHours(2).toString())
+                    .build()
+            );
+            reservationRepository.saveAll(reservations);
         }
     }
 }

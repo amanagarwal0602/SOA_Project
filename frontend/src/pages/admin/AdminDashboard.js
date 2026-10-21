@@ -24,7 +24,22 @@ const AdminDashboard = () => {
         api.get('/orders'),
         api.get('/menu')
       ]);
-      setOrders(ordersRes.data.data || []);
+      let rawOrders = ordersRes.data.data || [];
+      try {
+        const storedOrders = JSON.parse(localStorage.getItem('local_placed_orders') || '[]');
+        for (const localOrd of storedOrders) {
+          const alreadyPresent = rawOrders.some(bo => 
+            (localOrd.id && (bo.id === localOrd.id || bo._id === localOrd.id)) ||
+            (localOrd.utrNumber && bo.utrNumber === localOrd.utrNumber)
+          );
+          if (!alreadyPresent) {
+            rawOrders.unshift(localOrd);
+          }
+        }
+      } catch (e) {
+        console.warn('Could not read local_placed_orders in dashboard', e);
+      }
+      setOrders(rawOrders);
       setMenuItems(menuRes.data.data?.items || menuRes.data.data || []);
     } catch (error) {
       console.error('Dashboard error:', error);

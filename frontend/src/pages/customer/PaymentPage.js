@@ -97,6 +97,24 @@ const PaymentPage = () => {
       };
 
       const response = await api.post('/orders', orderData);
+      
+      // Cache order locally so it survives container restarts/redeployments
+      try {
+        const createdOrder = response.data?.data || response.data || orderData;
+        const orderToSave = {
+          ...orderData,
+          ...createdOrder,
+          id: createdOrder.id || createdOrder._id || `ord_${Date.now()}`,
+          orderNumber: createdOrder.orderNumber || createdOrder.order_number || `ORD-${Date.now().toString().slice(-6)}`,
+          createdAt: createdOrder.createdAt || createdOrder.created_at || new Date().toISOString()
+        };
+        const storedOrders = JSON.parse(localStorage.getItem('local_placed_orders') || '[]');
+        const updatedOrders = [orderToSave, ...storedOrders.filter(o => o.id !== orderToSave.id && o.utrNumber !== orderToSave.utrNumber)];
+        localStorage.setItem('local_placed_orders', JSON.stringify(updatedOrders));
+      } catch (cacheErr) {
+        console.warn('Failed to cache placed order locally', cacheErr);
+      }
+
       clearCart();
       
       toast.success('✓ Payment confirmed! Redirecting to orders...');

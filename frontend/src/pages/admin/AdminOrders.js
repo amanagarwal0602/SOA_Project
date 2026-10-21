@@ -57,7 +57,23 @@ const AdminOrders = () => {
     try {
       setLoading(true);
       const response = await api.get('/orders');
-      const ordersData = response.data.data || response.data || [];
+      let ordersData = response.data.data || response.data || [];
+      
+      // Merge locally placed orders so admin never loses locally placed transactions across redeployments
+      try {
+        const storedOrders = JSON.parse(localStorage.getItem('local_placed_orders') || '[]');
+        for (const localOrd of storedOrders) {
+          const alreadyPresent = ordersData.some(bo => 
+            (localOrd.id && (bo.id === localOrd.id || bo._id === localOrd.id)) ||
+            (localOrd.utrNumber && bo.utrNumber === localOrd.utrNumber)
+          );
+          if (!alreadyPresent) {
+            ordersData.unshift(localOrd);
+          }
+        }
+      } catch (e) {
+        console.warn('Could not read local_placed_orders in admin', e);
+      }
       
       // Orders already have daily_order_number from localStorage
       // Just add bill date for display
