@@ -174,7 +174,7 @@ public class AuthController {
                 .name(name != null ? name : (username != null ? username : email.split("@")[0]))
                 .email(email.trim().toLowerCase())
                 .username(username != null && !username.isBlank() ? username.trim() : email.split("@")[0])
-                .password(password)
+                .password(password != null && !password.startsWith("$2a$") ? passwordEncoder.encode(password) : password)
                 .role(role)
                 .phone((String) userData.get("phone"))
                 .addressStreet((String) userData.get("address_street"))

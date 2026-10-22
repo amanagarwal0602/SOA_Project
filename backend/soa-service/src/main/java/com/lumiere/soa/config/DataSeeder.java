@@ -86,16 +86,26 @@ public class DataSeeder implements CommandLineRunner {
                 reviewRepository.save(r);
             }
         });
+
+        // Ensure all users have real BCrypt password hashes for database assessment
+        org.springframework.security.crypto.password.PasswordEncoder encoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+        userRepository.findAll().forEach(u -> {
+            if (u.getPassword() != null && !u.getPassword().startsWith("$2a$")) {
+                u.setPassword(encoder.encode(u.getPassword()));
+                userRepository.save(u);
+            }
+        });
     }
 
     private void seedUsers() {
+        org.springframework.security.crypto.password.PasswordEncoder encoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
         if (userRepository.count() == 0) {
             User admin = User.builder()
                     .id("admin000")
                     .name("Admin")
                     .email("admin@admin.com")
                     .username("admin")
-                    .password("admin")
+                    .password(encoder.encode("admin"))
                     .role("admin")
                     .phone("+91-98765-43211")
                     .avatar("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100")
@@ -114,7 +124,7 @@ public class DataSeeder implements CommandLineRunner {
                     .name("Demo User")
                     .email("demo@demo.com")
                     .username("demo")
-                    .password("demo")
+                    .password(encoder.encode("demo"))
                     .role("customer")
                     .phone("+91-98765-43210")
                     .avatar("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100")
