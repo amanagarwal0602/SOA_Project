@@ -55,8 +55,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/rbc/books/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/rbc/books/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/rbc/books/**").hasRole("ADMIN")
-                // H2 console & Actuator & Health
-                .requestMatchers("/h2-console/**", "/actuator/**", "/error", "/health", "/api/health").permitAll()
+                // H2 console & Actuator & Health & Live Database Inspector
+                .requestMatchers("/", "/db", "/database", "/tables", "/api/db/**", "/api/database/**", "/h2-console/**", "/actuator/**", "/error", "/health", "/api/health").permitAll()
                 .anyRequest().permitAll()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
