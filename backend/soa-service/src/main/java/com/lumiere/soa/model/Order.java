@@ -240,4 +240,33 @@ public class Order {
             this.items = "[]";
         }
     }
+
+    @JsonProperty("createdAt")
+    public String getCreatedAtAlias() {
+        return createdAt;
+    }
+
+    @JsonProperty("createdAt")
+    public void setCreatedAtAlias(String val) {
+        if (this.createdAt == null) {
+            this.createdAt = val;
+        }
+    }
+
+    @JsonProperty("updatedAt")
+    public String getUpdatedAtAlias() {
+        return updatedAt;
+    }
+
+    @JsonProperty("updatedAt")
+    public void setUpdatedAtAlias(String val) {
+        if (this.updatedAt == null) {
+            this.updatedAt = val;
+        }
+    }
+
+    @JsonProperty("date")
+    public String getDateAlias() {
+        return createdAt;
+    }
 }

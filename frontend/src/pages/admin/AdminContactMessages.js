@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { FiMail, FiTrash2, FiCheck, FiX, FiSend } from 'react-icons/fi';
+import { formatSafeDate, formatSafeDateTime } from '../../utils/dateUtils';
 
 const AdminContactMessages = () => {
   const [messages, setMessages] = useState([]);
@@ -210,21 +211,22 @@ const AdminContactMessages = () => {
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {messages.map((message) => {
               const messageId = message.id || message._id;
+              const msgStatus = message.status || (message.isRead ? 'read' : 'unread');
               return (
               <div
                 key={messageId}
                 className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
-                  message.status === 'unread' ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''
+                  msgStatus === 'unread' ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-3">
                     <div className={`p-2 rounded-lg ${
-                      message.status === 'unread' 
+                      msgStatus === 'unread' 
                         ? 'bg-blue-100 dark:bg-blue-900' 
                         : 'bg-gray-100 dark:bg-gray-700'
                     }`}>
-                      {message.status === 'unread' ? (
+                      {msgStatus === 'unread' ? (
                         <FiMail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       ) : (
                         <FiMail className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -241,11 +243,11 @@ const AdminContactMessages = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(message.status)}`}>
-                      {message.status.charAt(0).toUpperCase() + message.status.slice(1)}
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(msgStatus)}`}>
+                      {msgStatus.charAt(0).toUpperCase() + msgStatus.slice(1)}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(message.createdAt).toLocaleDateString()}
+                      {formatSafeDate(message.createdAt || message.created_at)}
                     </span>
                   </div>
                 </div>
@@ -259,13 +261,13 @@ const AdminContactMessages = () => {
                     <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-1">Your Reply:</p>
                     <p className="text-sm text-green-700 dark:text-green-400">{message.replyMessage}</p>
                     <p className="text-xs text-green-600 dark:text-green-500 mt-2">
-                      Replied on {new Date(message.repliedAt).toLocaleString()}
+                      Replied on {formatSafeDateTime(message.repliedAt || message.replied_at)}
                     </p>
                   </div>
                 )}
 
                 <div className="flex items-center space-x-2">
-                  {message.status === 'unread' && (
+                  {msgStatus === 'unread' && (
                     <button
                       onClick={() => updateMessageStatus(messageId, 'read')}
                       className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1"

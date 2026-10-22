@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { FiPackage, FiClock, FiCheckCircle, FiTruck, FiCalendar, FiStar } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
+import { formatSafeDate, formatSafeDateTime } from '../../utils/dateUtils';
 
 const OrdersPage = () => {
   const { user } = useAuth();
@@ -205,13 +206,7 @@ const OrdersPage = () => {
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 text-sm mt-2 flex items-center gap-1.5">
                         <FiClock className="w-4 h-4" />
-                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        }) : 'Date unknown'}
+                        {formatSafeDateTime(order.createdAt || order.created_at)}
                       </p>
                     </div>
                     <div className="flex flex-col items-start md:items-end gap-3">
@@ -333,11 +328,7 @@ const OrdersPage = () => {
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400 text-sm mt-2 flex items-center gap-1.5">
                           <FiClock className="w-4 h-4" />
-                          Created: {reservation.createdAt ? new Date(reservation.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          }) : 'Date unknown'}
+                          Created: {formatSafeDate(reservation.createdAt || reservation.created_at)}
                         </p>
                       </div>
                       <span className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-bold shadow-sm ${
@@ -363,11 +354,11 @@ const OrdersPage = () => {
                         <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1">Date & Time</p>
                         <p className="font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center gap-2">
                           <FiCalendar className="text-blue-600" />
-                          {reservation.date}
+                          {formatSafeDate(reservation.date, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }, reservation.date || 'TBD')}
                         </p>
                         <p className="font-semibold text-gray-700 dark:text-gray-300 mt-1 flex items-center gap-2">
                           <FiClock className="text-blue-600" />
-                          {reservation.time}
+                          {reservation.time || reservation.timeSlot || reservation.time_slot || '7:00 PM'}
                         </p>
                       </div>
                       <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">

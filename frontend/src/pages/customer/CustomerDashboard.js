@@ -1,11 +1,67 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiShoppingBag, FiHeart, FiCalendar, FiUser, FiSettings, FiBox, FiImage, FiStar, FiUsers, FiTag } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { checkPermission } from '../../utils/permissions';
+import api from '../../services/api';
+import { formatSafeDate } from '../../utils/dateUtils';
 
 const CustomerDashboard = () => {
   const { user } = useAuth();
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [upcomingReservations, setUpcomingReservations] = useState([]);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userEmail = (user?.email || '').toLowerCase();
+        const userId = user?.id || user?._id;
+
+        // Fetch Orders
+        const ordRes = await api.get('/orders');
+        let allOrders = ordRes.data?.data || ordRes.data || [];
+        try {
+          const localOrders = JSON.parse(localStorage.getItem('local_placed_orders') || '[]');
+          for (const lo of localOrders) {
+            if (!allOrders.some(o => o.id === lo.id || (lo.utrNumber && o.utrNumber === lo.utrNumber))) {
+              allOrders.unshift(lo);
+            }
+          }
+        } catch (e) {}
+
+        const userOrders = allOrders.filter(o => {
+          if (userId && (o.userId === userId || o.user_id === userId)) return true;
+          const orderEmail = (o.userEmail || o.customerEmail || o.email || '').toLowerCase();
+          return userEmail && orderEmail && orderEmail === userEmail;
+        });
+        setRecentOrders(userOrders);
+
+        // Fetch Reservations
+        const resRes = await api.get('/reservations');
+        let allRes = resRes.data?.data || resRes.data || [];
+        try {
+          const localRes = JSON.parse(localStorage.getItem('local_reservations') || '[]');
+          for (const lr of localRes) {
+            if (!allRes.some(r => r.id === lr.id)) allRes.unshift(lr);
+          }
+        } catch (e) {}
+
+        const userRes = allRes.filter(r => {
+          if (userId && (r.userId === userId || r.user_id === userId)) return true;
+          const resEmail = (r.userEmail || r.guestEmail || r.email || '').toLowerCase();
+          return userEmail && resEmail && resEmail === userEmail;
+        });
+        setUpcomingReservations(userRes);
+      } catch (err) {
+        console.warn('Dashboard summary fetch failed', err);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
 
   const customerLinks = [
     { icon: <FiUser />, title: 'My Profile', path: '/customer/profile', color: 'bg-slate-600' },
@@ -132,34 +188,115 @@ const CustomerDashboard = () => {
         {/* Quick Info Section */}
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-gradient-to-br from-white to-teal-50 dark:from-gray-800 dark:to-teal-900/10 p-8 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-100">Recent Orders</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{recentOrders.length} order{recentOrders.length === 1 ? '' : 's'} on record</p>
+                </div>
               </div>
-              <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-100">Recent Orders</h2>
+              {recentOrders.length > 0 && (
+                <span className="px-3 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-300 rounded-full text-xs font-bold">
+                  Active
+                </span>
+              )}
             </div>
-            <p className="text-gray-600 dark:text-gray-400">You have no recent orders</p>
-            <Link to="/customer/orders" className="inline-flex items-center gap-2 mt-4 text-teal-600 dark:text-teal-400 font-semibold hover:gap-3 transition-all">
-              <span>View all orders</span>
+
+            {loadingStats ? (
+              <div className="py-6 text-center text-sm text-gray-500 dark:text-gray-400 animate-pulse">Loading recent orders...</div>
+            ) : recentOrders.length > 0 ? (
+              <div className="space-y-3 mb-4">
+                {recentOrders.slice(0, 2).map((order) => {
+                  const ordId = order.id || order._id;
+                  const total = order.total || order.totalPrice || 0;
+                  return (
+                    <div key={ordId} className="p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-teal-100 dark:border-gray-700 flex justify-between items-center text-sm shadow-sm">
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                          Order #{order.dailyOrderNumber || order.orderNumber || (ordId ? String(ordId).slice(-6) : 'N/A')}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatSafeDate(order.createdAt || order.created_at)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-teal-600 dark:text-teal-400">₹{Math.round(total)}</p>
+                        <span className="text-[11px] font-medium capitalize text-gray-600 dark:text-gray-300">
+                          {order.status || 'pending'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-gray-600 dark:text-gray-400 mb-4">You have no orders yet. Explore our handcrafted menu!</p>
+            )}
+
+            <Link to="/customer/orders" className="inline-flex items-center gap-2 text-teal-600 dark:text-teal-400 font-semibold hover:gap-3 transition-all text-sm">
+              <span>View all orders ({recentOrders.length})</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
           </div>
+
           <div className="bg-gradient-to-br from-white to-cyan-50 dark:from-gray-800 dark:to-cyan-900/10 p-8 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-100">Table Reservations</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{upcomingReservations.length} booking{upcomingReservations.length === 1 ? '' : 's'} on record</p>
+                </div>
               </div>
-              <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-gray-100">Upcoming Reservations</h2>
+              {upcomingReservations.length > 0 && (
+                <span className="px-3 py-1 bg-cyan-100 dark:bg-cyan-900/50 text-cyan-800 dark:text-cyan-300 rounded-full text-xs font-bold">
+                  Booked
+                </span>
+              )}
             </div>
-            <p className="text-gray-600 dark:text-gray-400">No upcoming reservations</p>
-            <Link to="/customer/reservations" className="inline-flex items-center gap-2 mt-4 text-cyan-600 dark:text-cyan-400 font-semibold hover:gap-3 transition-all">
-              <span>View all reservations</span>
+
+            {loadingStats ? (
+              <div className="py-6 text-center text-sm text-gray-500 dark:text-gray-400 animate-pulse">Loading reservations...</div>
+            ) : upcomingReservations.length > 0 ? (
+              <div className="space-y-3 mb-4">
+                {upcomingReservations.slice(0, 2).map((res) => {
+                  const resId = res.id || res._id;
+                  return (
+                    <div key={resId} className="p-3 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-cyan-100 dark:border-gray-700 flex justify-between items-center text-sm shadow-sm">
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">
+                          {formatSafeDate(res.date, { weekday: 'short', month: 'short', day: 'numeric' }, res.date)}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {res.time || res.timeSlot || '7:00 PM'} • {res.guests || res.numberOfGuests || 2} Guests
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="px-2 py-0.5 rounded text-xs font-bold capitalize bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
+                          {res.status || 'confirmed'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-gray-600 dark:text-gray-400 mb-4">No upcoming table reservations. Book a delightful dining experience!</p>
+            )}
+
+            <Link to="/customer/reservations" className="inline-flex items-center gap-2 text-cyan-600 dark:text-cyan-400 font-semibold hover:gap-3 transition-all text-sm">
+              <span>View all reservations ({upcomingReservations.length})</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>

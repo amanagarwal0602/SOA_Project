@@ -118,10 +118,46 @@ public class Review {
         return userName;
     }
 
+    @JsonProperty("createdAt")
+    public String getCreatedAtAlias() {
+        return createdAt;
+    }
+
+    @JsonProperty("createdAt")
+    public void setCreatedAtAlias(String val) {
+        if (this.createdAt == null) {
+            this.createdAt = val;
+        }
+    }
+
+    @JsonProperty("isPublished")
+    public boolean getIsPublishedCamel() {
+        return isPublished;
+    }
+
+    @JsonProperty("isPublished")
+    public void setIsPublishedCamel(boolean pub) {
+        this.isPublished = pub;
+    }
+
+    @JsonProperty("showOnHomepage")
+    public boolean getShowOnHomepageCamel() {
+        return showOnHomepage;
+    }
+
+    @JsonProperty("showOnHomepage")
+    public void setShowOnHomepageCamel(boolean show) {
+        this.showOnHomepage = show;
+    }
+
     @JsonProperty("adminResponse")
-    public Map<String, String> getAdminResponseMap() {
+    public Map<String, Object> getAdminResponseMap() {
         if (response == null || response.isBlank()) return null;
-        return Map.of("response", response);
+        Map<String, Object> map = new HashMap<>();
+        map.put("response", response);
+        map.put("respondedAt", createdAt != null ? createdAt : LocalDateTime.now().toString());
+        map.put("respondedBy", Map.of("name", "Management"));
+        return map;
     }
 
     @JsonProperty("user")

@@ -104,4 +104,16 @@ public class TeamMember {
     public boolean isShowOnAbout() {
         return showOnAbout;
     }
+
+    @JsonProperty("createdAt")
+    public String getCreatedAtAlias() {
+        return createdAt;
+    }
+
+    @JsonProperty("createdAt")
+    public void setCreatedAtAlias(String val) {
+        if (this.createdAt == null) {
+            this.createdAt = val;
+        }
+    }
 }

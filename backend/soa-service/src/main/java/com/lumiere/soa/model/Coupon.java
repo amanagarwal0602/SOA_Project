@@ -122,4 +122,36 @@ public class Coupon {
     public void setIsActiveCamel(boolean isActive) {
         this.isActive = isActive;
     }
+
+    @JsonProperty("validFrom")
+    public String getValidFromCamel() {
+        return validFrom;
+    }
+
+    @JsonProperty("validFrom")
+    public void setValidFromCamel(String validFrom) {
+        this.validFrom = validFrom;
+    }
+
+    @JsonProperty("validUntil")
+    public String getValidUntilCamel() {
+        return validUntil;
+    }
+
+    @JsonProperty("validUntil")
+    public void setValidUntilCamel(String validUntil) {
+        this.validUntil = validUntil;
+    }
+
+    @JsonProperty("createdAt")
+    public String getCreatedAtAlias() {
+        return createdAt;
+    }
+
+    @JsonProperty("createdAt")
+    public void setCreatedAtAlias(String val) {
+        if (this.createdAt == null) {
+            this.createdAt = val;
+        }
+    }
 }

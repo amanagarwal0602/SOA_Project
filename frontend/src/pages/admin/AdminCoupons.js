@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
+import { formatSafeDate, parseSafeDate } from '../../utils/dateUtils';
 
 const AdminCoupons = () => {
   const [loading, setLoading] = useState(true);
@@ -88,23 +89,22 @@ const AdminCoupons = () => {
     
     // Helper to safely convert date strings
     const toDateInputValue = (dateStr) => {
-      if (!dateStr) return '';
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return ''; // Invalid date
-      return date.toISOString().slice(0, 16);
+      const d = parseSafeDate(dateStr);
+      if (!d) return '';
+      return d.toISOString().slice(0, 16);
     };
     
     setFormData({
       code: coupon.code,
       description: coupon.description,
-      discountType: coupon.discountType,
-      discountValue: coupon.discountValue,
-      minOrderAmount: coupon.minOrderAmount,
-      maxDiscountAmount: coupon.maxDiscountAmount || '',
-      validFrom: toDateInputValue(coupon.validFrom),
-      validUntil: toDateInputValue(coupon.validUntil),
+      discountType: coupon.discountType || coupon.discount_type || 'percentage',
+      discountValue: coupon.discountValue || coupon.discount_value || 0,
+      minOrderAmount: coupon.minOrderAmount || coupon.min_order_value || 0,
+      maxDiscountAmount: coupon.maxDiscountAmount || coupon.max_discount || '',
+      validFrom: toDateInputValue(coupon.validFrom || coupon.valid_from),
+      validUntil: toDateInputValue(coupon.validUntil || coupon.valid_until),
       usageLimit: coupon.usageLimit || '',
-      isActive: coupon.isActive,
+      isActive: coupon.isActive !== undefined ? coupon.isActive : (coupon.is_active !== undefined ? coupon.is_active : true),
       applicableCategories: coupon.applicableCategories || []
     });
     setShowModal(true);
@@ -127,7 +127,11 @@ const AdminCoupons = () => {
     });
   };
 
-  const isExpired = (date) => new Date(date) < new Date();
+  const isExpired = (date) => {
+    const d = parseSafeDate(date);
+    if (!d) return false;
+    return d < new Date();
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -183,9 +187,9 @@ const AdminCoupons = () => {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-gray-700 dark:text-gray-300">
-                      {new Date(coupon.validUntil).toLocaleDateString()}
+                      {formatSafeDate(coupon.validUntil || coupon.valid_until, { month: 'short', day: 'numeric', year: 'numeric' }, 'No expiry')}
                     </div>
-                    {isExpired(coupon.validUntil) && (
+                    {isExpired(coupon.validUntil || coupon.valid_until) && (
                       <span className="inline-flex items-center px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded mt-1">Expired</span>
                     )}
                   </td>

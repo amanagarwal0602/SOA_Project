@@ -4,6 +4,7 @@ import ImageUpload from '../../components/ImageUpload';
 import Avatar from '../../components/Avatar';
 import { FiEdit2, FiTrash2, FiPlus, FiX, FiCalendar, FiToggleLeft, FiToggleRight } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { formatSafeDate, parseSafeDate } from '../../utils/dateUtils';
 
 const AdminTodaysOffers = () => {
   const [offers, setOffers] = useState([]);
@@ -105,14 +106,13 @@ const AdminTodaysOffers = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'No expiry';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return formatSafeDate(dateString, { year: 'numeric', month: 'short', day: 'numeric' }, 'No expiry');
   };
 
   const isExpired = (dateString) => {
-    if (!dateString) return false;
-    return new Date(dateString) < new Date();
+    const d = parseSafeDate(dateString);
+    if (!d) return false;
+    return d < new Date();
   };
 
   return (
@@ -190,8 +190,8 @@ const AdminTodaysOffers = () => {
                   </p>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
                     <FiCalendar />
-                    <span className={isExpired(offer.validUntil) ? 'text-red-500' : ''}>
-                      Valid until: {formatDate(offer.validUntil)}
+                    <span className={isExpired(offer.validUntil || offer.valid_until) ? 'text-red-500' : ''}>
+                      Valid until: {formatDate(offer.validUntil || offer.valid_until)}
                     </span>
                   </div>
                   <div className="flex gap-2">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { FiTrash2, FiMessageSquare, FiX, FiHome } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { formatSafeDate } from '../../utils/dateUtils';
 
 const AdminReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -171,7 +172,7 @@ const AdminReviews = () => {
                     </div>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">
-                    By {review.user?.name || review.userName || 'Customer'} • {review.createdAt || review.created_at ? new Date(review.createdAt || review.created_at).toLocaleDateString() : 'Recent'}
+                    By {review.user?.name || review.userName || 'Customer'} • {formatSafeDate(review.createdAt || review.created_at || review.date)}
                   </p>
                   {review.isVerifiedPurchase && (
                     <span className="inline-block px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 text-xs rounded">✓ Verified Purchase</span>
@@ -217,7 +218,7 @@ const AdminReviews = () => {
                   <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">Admin Response:</p>
                   <p className="text-sm text-blue-800 dark:text-blue-400">{review.adminResponse.response}</p>
                   <p className="text-xs text-blue-600 dark:text-blue-500 mt-2">
-                    {new Date(review.adminResponse.respondedAt).toLocaleDateString()} by {review.adminResponse.respondedBy?.name || 'Admin'}
+                    {formatSafeDate(review.adminResponse.respondedAt || review.createdAt || review.created_at)} by {review.adminResponse.respondedBy?.name || 'Management'}
                   </p>
                 </div>
               )}

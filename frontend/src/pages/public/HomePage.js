@@ -8,6 +8,7 @@ import EditableWrapper from '../../components/EditableWrapper';
 import EditModal from '../../components/EditModal';
 import { useCart } from '../../context/CartContext';
 import { toast } from 'react-toastify';
+import { formatSafeDate } from '../../utils/dateUtils';
 
 const HomePage = () => {
   const { addToCart } = useCart();
@@ -340,9 +341,9 @@ const HomePage = () => {
                                 <span className="bg-primary-500 text-white px-2.5 py-0.5 rounded-full text-xs font-bold">
                                   {offer.discount || 'Special'}
                                 </span>
-                                {offer.validUntil && (
+                                {(offer.validUntil || offer.valid_until) && (
                                   <span className="text-[11px] text-gray-500 dark:text-gray-400">
-                                    Till {new Date(offer.validUntil).toLocaleDateString()}
+                                    Till {formatSafeDate(offer.validUntil || offer.valid_until, { month: 'short', day: 'numeric' })}
                                   </span>
                                 )}
                               </div>

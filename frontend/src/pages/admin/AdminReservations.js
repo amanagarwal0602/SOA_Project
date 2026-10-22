@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { FiCalendar, FiUsers, FiClock } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { formatSafeDate, formatSafeDateTime, parseSafeDate } from '../../utils/dateUtils';
 
 const AdminReservations = () => {
   const [reservations, setReservations] = useState([]);
@@ -63,14 +64,14 @@ const AdminReservations = () => {
   ).sort((a, b) => {
     // For pending reservations: sort by creation time (oldest first - first come, first serve)
     if (filter === 'pending') {
-      const createdA = new Date(a.createdAt || a.created_at);
-      const createdB = new Date(b.createdAt || b.created_at);
+      const createdA = parseSafeDate(a.createdAt || a.created_at) || new Date(0);
+      const createdB = parseSafeDate(b.createdAt || b.created_at) || new Date(0);
       return createdA - createdB; // Ascending (oldest first)
     }
     
     // For all other statuses: sort by when they were confirmed/updated (newest first)
-    const updatedA = new Date(a.updatedAt || a.updated_at || a.createdAt || a.created_at);
-    const updatedB = new Date(b.updatedAt || b.updated_at || b.createdAt || b.created_at);
+    const updatedA = parseSafeDate(a.updatedAt || a.updated_at || a.createdAt || a.created_at) || new Date(0);
+    const updatedB = parseSafeDate(b.updatedAt || b.updated_at || b.createdAt || b.created_at) || new Date(0);
     return updatedB - updatedA; // Descending (most recently updated first)
   });
 
@@ -135,12 +136,12 @@ const AdminReservations = () => {
                       <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                         <FiCalendar size={16} className="text-gray-400" />
                         <span className="text-sm">
-                          {res.date ? new Date(res.date).toLocaleDateString('en-IN', {
+                          {formatSafeDate(res.date, {
                             weekday: 'short',
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric'
-                          }) : 'Date TBD'}
+                          }, res.date || 'Date TBD')}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
@@ -168,7 +169,7 @@ const AdminReservations = () => {
                         <p className="text-sm text-red-800 dark:text-red-400">{res.cancellationReason || res.cancellation_reason}</p>
                         {(res.cancelledAt || res.cancelled_at) && (
                           <p className="text-xs text-red-600 dark:text-red-500 mt-2">
-                            Cancelled: {new Date(res.cancelledAt || res.cancelled_at).toLocaleString()}
+                            Cancelled: {formatSafeDateTime(res.cancelledAt || res.cancelled_at)}
                           </p>
                         )}
                       </div>

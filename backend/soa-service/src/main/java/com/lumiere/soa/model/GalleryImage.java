@@ -90,4 +90,16 @@ public class GalleryImage {
     public void setIsPublished(boolean isPublished) {
         this.isFeatured = isPublished;
     }
+
+    @JsonProperty("createdAt")
+    public String getCreatedAtAlias() {
+        return createdAt;
+    }
+
+    @JsonProperty("createdAt")
+    public void setCreatedAtAlias(String val) {
+        if (this.createdAt == null) {
+            this.createdAt = val;
+        }
+    }
 }

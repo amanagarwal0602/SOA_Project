@@ -3,6 +3,7 @@ import api from '../../services/api';
 import { FiPrinter, FiEye, FiX, FiCalendar, FiChevronDown, FiChevronUp, FiCheckCircle } from 'react-icons/fi';
 import { useSiteSettings } from '../../hooks/useSiteSettings';
 import { toast } from 'react-toastify';
+import { formatSafeDate, formatSafeTime, formatSafeDateTime, getOrderDateKey, parseSafeDate } from '../../utils/dateUtils';
 
 const AdminOrders = () => {
   const { settings } = useSiteSettings();
@@ -189,20 +190,20 @@ const AdminOrders = () => {
   }).sort((a, b) => {
     // For pending orders: sort by creation time (oldest first - first come, first serve)
     if (filter === 'pending') {
-      const createdA = new Date(a.createdAt);
-      const createdB = new Date(b.createdAt);
+      const createdA = parseSafeDate(a.createdAt || a.created_at) || new Date(0);
+      const createdB = parseSafeDate(b.createdAt || b.created_at) || new Date(0);
       return createdA - createdB; // Ascending (oldest first)
     }
     
     // For all other statuses: sort by when they were confirmed/updated (newest first)
-    const updatedA = new Date(a.updated_at || a.updatedAt || a.createdAt);
-    const updatedB = new Date(b.updated_at || b.updatedAt || b.createdAt);
+    const updatedA = parseSafeDate(a.updated_at || a.updatedAt || a.createdAt || a.created_at) || new Date(0);
+    const updatedB = parseSafeDate(b.updated_at || b.updatedAt || b.createdAt || b.created_at) || new Date(0);
     return updatedB - updatedA; // Descending (most recently confirmed/updated first)
   });
 
   // Group orders by date
   const ordersByDate = filteredOrders.reduce((acc, order) => {
-    const date = order.createdAt ? new Date(order.createdAt).toDateString() : 'Unknown Date';
+    const date = getOrderDateKey(order);
     if (!acc[date]) {
       acc[date] = [];
     }
@@ -211,7 +212,11 @@ const AdminOrders = () => {
   }, {});
 
   // Sort dates descending (newest first)
-  const sortedDates = Object.keys(ordersByDate).sort((a, b) => new Date(b) - new Date(a));
+  const sortedDates = Object.keys(ordersByDate).sort((a, b) => {
+    const da = parseSafeDate(a) || new Date(0);
+    const db = parseSafeDate(b) || new Date(0);
+    return db - da;
+  });
 
   const toggleDateExpansion = (date) => {
     setExpandedDates(prev => ({
@@ -346,12 +351,12 @@ const AdminOrders = () => {
                         <FiCalendar size={24} className="text-primary-600 dark:text-primary-400" />
                         <div>
                           <h3 className="font-bold text-xl text-gray-800 dark:text-gray-100">
-                            {new Date(date).toLocaleDateString('en-IN', {
+                            {formatSafeDate(date, {
                               weekday: 'long',
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric'
-                            })}
+                            }, date)}
                           </h3>
                           <p className="text-sm text-gray-600 dark:text-gray-400">{dateOrders.length} orders</p>
                         </div>
@@ -377,7 +382,7 @@ const AdminOrders = () => {
                             <div className="flex-1 min-w-[200px]">
                               <div className="flex items-center gap-3 mb-2">
                                 <h3 className="font-bold text-lg">
-                                  Order #{order.dailyBillNumber} - {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  Order #{order.dailyBillNumber || order.orderNumber || (orderId ? String(orderId).slice(-6) : 'N/A')} - {formatSafeDate(order.createdAt || order.created_at, { month: 'short', day: 'numeric' })}
                                 </h3>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
                                   {(order.status || 'pending').toUpperCase()}
@@ -390,10 +395,7 @@ const AdminOrders = () => {
                                 {order.customerEmail || order.userEmail || 'N/A'}
                               </p>
                               <p className="text-gray-500 text-xs mt-1">
-                                {order.createdAt ? new Date(order.createdAt).toLocaleTimeString('en-US', {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                }) : 'Time unknown'}
+                                {formatSafeTime(order.createdAt || order.created_at)}
                               </p>
                               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                                 <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 font-medium text-slate-700 dark:text-slate-300">
@@ -488,7 +490,7 @@ const AdminOrders = () => {
                   <div className="flex-1 min-w-[200px]">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-bold text-xl">
-                        Order #{order.dailyBillNumber} - {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        Order #{order.dailyBillNumber || order.orderNumber || (orderId ? String(orderId).slice(-6) : 'N/A')} - {formatSafeDate(order.createdAt || order.created_at, { month: 'short', day: 'numeric' })}
                       </h3>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
                         {(order.status || 'pending').toUpperCase()}
@@ -501,13 +503,7 @@ const AdminOrders = () => {
                       {order.customerEmail || order.userEmail || 'N/A'}
                     </p>
                     <p className="text-gray-500 text-xs mt-1">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) : 'Date unknown'}
+                      {formatSafeDateTime(order.createdAt || order.created_at)}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <span className="text-xs px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-700 font-medium text-slate-700 dark:text-slate-300">
@@ -594,7 +590,7 @@ const AdminOrders = () => {
                         {order.reservationDate && (
                           <div>
                             <span className="text-gray-600 dark:text-gray-400">Date:</span>
-                            <span className="ml-2 font-medium">{new Date(order.reservationDate).toLocaleDateString()}</span>
+                            <span className="ml-2 font-medium">{formatSafeDate(order.reservationDate)}</span>
                           </div>
                         )}
                         {order.reservationTime && (
@@ -625,7 +621,7 @@ const AdminOrders = () => {
             <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Order #{selectedOrder.dailyBillNumber} - {new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  Order #{selectedOrder.dailyBillNumber || selectedOrder.orderNumber || 'N/A'} - {formatSafeDate(selectedOrder.createdAt || selectedOrder.created_at, { month: 'short', day: 'numeric' })}
                 </h2>
                 <div className="flex gap-2">
                   <button
@@ -654,8 +650,8 @@ const AdminOrders = () => {
                 <div className="bill-info">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p><strong>Order Number:</strong> #{selectedOrder.dailyBillNumber}</p>
-                      <p><strong>Date:</strong> {selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</p>
+                      <p><strong>Order Number:</strong> #{selectedOrder.dailyBillNumber || selectedOrder.orderNumber || 'N/A'}</p>
+                      <p><strong>Date:</strong> {formatSafeDate(selectedOrder.createdAt || selectedOrder.created_at, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                       <p><strong>Order ID:</strong> {selectedOrder.orderNumber || (selectedOrder.id ? selectedOrder.id.slice(-8) : (selectedOrder._id ? selectedOrder._id.slice(-8) : 'N/A'))}</p>
                       <p><strong>Payment Method:</strong> {selectedOrder.paymentMethod || selectedOrder.payment_method || 'UPI'}</p>
                     </div>

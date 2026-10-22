@@ -68,6 +68,24 @@ public class DataSeeder implements CommandLineRunner {
         if (reservationRepository.count() == 0) {
             seedReservations();
         }
+
+        // Heal existing coupons with valid expiry dates if missing
+        couponRepository.findAll().forEach(c -> {
+            if (c.getValidUntil() == null || c.getValidUntil().isBlank()) {
+                c.setValidFrom(java.time.LocalDate.now().minusDays(5).toString());
+                c.setValidUntil(java.time.LocalDate.now().plusMonths(6).toString());
+                couponRepository.save(c);
+            }
+        });
+
+        // Heal existing reviews with valid timestamps if missing
+        reviewRepository.findAll().forEach(r -> {
+            if (r.getCreatedAt() == null || r.getCreatedAt().isBlank()) {
+                r.setCreatedAt(java.time.LocalDateTime.now().minusDays(2).toString());
+                r.setDate(java.time.LocalDate.now().minusDays(2).toString());
+                reviewRepository.save(r);
+            }
+        });
     }
 
     private void seedUsers() {
@@ -172,10 +190,11 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedCoupons() {
         if (couponRepository.count() == 0) {
+            java.time.LocalDate today = java.time.LocalDate.now();
             List<Coupon> coupons = List.of(
-                Coupon.builder().id("c1").code("WELCOME10").description("10% off your first online order").discountType("percentage").discountValue(10).minOrderValue(15).maxDiscount(50).isActive(true).build(),
-                Coupon.builder().id("c2").code("FLAT50").description("Flat $5 off orders above $30").discountType("fixed").discountValue(5).minOrderValue(30).maxDiscount(5).isActive(true).build(),
-                Coupon.builder().id("c3").code("LUMIERE20").description("Special 20% discount on orders above $50").discountType("percentage").discountValue(20).minOrderValue(50).maxDiscount(100).isActive(true).build()
+                Coupon.builder().id("c1").code("WELCOME10").description("10% off your first online order").discountType("percentage").discountValue(10).minOrderValue(150).maxDiscount(50).validFrom(today.minusDays(5).toString()).validUntil(today.plusMonths(6).toString()).isActive(true).build(),
+                Coupon.builder().id("c2").code("FLAT50").description("Flat ₹50 off orders above ₹300").discountType("fixed").discountValue(50).minOrderValue(300).maxDiscount(50).validFrom(today.minusDays(5).toString()).validUntil(today.plusMonths(6).toString()).isActive(true).build(),
+                Coupon.builder().id("c3").code("LUMIERE20").description("Special 20% discount on orders above ₹500").discountType("percentage").discountValue(20).minOrderValue(500).maxDiscount(100).validFrom(today.minusDays(5).toString()).validUntil(today.plusMonths(6).toString()).isActive(true).build()
             );
             couponRepository.saveAll(coupons);
         }
@@ -205,10 +224,11 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedReviews() {
         if (reviewRepository.count() == 0) {
+            String nowIso = java.time.LocalDateTime.now().minusDays(2).toString();
             List<Review> reviews = List.of(
-                Review.builder().id("r1").userId("demo001").userName("Sophia Miller").rating(5).comment("The Margherita pizza was exceptional! Crust was crisp with the perfect char, and the Flat White was perfection.").isPublished(true).showOnHomepage(true).build(),
-                Review.builder().id("r2").userId("demo001").userName("Alexander Wright").rating(5).comment("Lumière Café sets the gold standard for dining ambiance and food quality in the city. Highly recommended!").isPublished(true).showOnHomepage(true).build(),
-                Review.builder().id("r3").userId("demo001").userName("Priya Sharma").rating(5).comment("The Truffle Risotto was creamy, flavorful and aromatic. Fast delivery and delightful eco-friendly packaging.").isPublished(true).showOnHomepage(true).build()
+                Review.builder().id("r1").userId("demo001").userName("Sophia Miller").rating(5).comment("The Margherita pizza was exceptional! Crust was crisp with the perfect char, and the Flat White was perfection.").isPublished(true).showOnHomepage(true).createdAt(nowIso).date(java.time.LocalDate.now().minusDays(2).toString()).build(),
+                Review.builder().id("r2").userId("demo001").userName("Alexander Wright").rating(5).comment("Lumière Café sets the gold standard for dining ambiance and food quality in the city. Highly recommended!").isPublished(true).showOnHomepage(true).createdAt(nowIso).date(java.time.LocalDate.now().minusDays(2).toString()).build(),
+                Review.builder().id("r3").userId("demo001").userName("Priya Sharma").rating(5).comment("The Truffle Risotto was creamy, flavorful and aromatic. Fast delivery and delightful eco-friendly packaging.").isPublished(true).showOnHomepage(true).createdAt(nowIso).date(java.time.LocalDate.now().minusDays(2).toString()).build()
             );
             reviewRepository.saveAll(reviews);
         }

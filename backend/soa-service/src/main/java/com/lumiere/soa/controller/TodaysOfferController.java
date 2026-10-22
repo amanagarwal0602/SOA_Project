@@ -26,12 +26,45 @@ public class TodaysOfferController {
         Optional<CafeContent> opt = cafeContentRepository.findById("todays_offers");
         if (opt.isPresent() && opt.get().getContentJson() != null && !opt.get().getContentJson().isBlank()) {
             try {
-                return objectMapper.readValue(opt.get().getContentJson(), new TypeReference<List<Map<String, Object>>>() {});
-            } catch (Exception e) {
-                return new ArrayList<>();
-            }
+                List<Map<String, Object>> list = objectMapper.readValue(opt.get().getContentJson(), new TypeReference<List<Map<String, Object>>>() {});
+                if (list != null && !list.isEmpty()) {
+                    return list;
+                }
+            } catch (Exception ignored) {}
         }
-        return new ArrayList<>();
+
+        // Pre-seeded artisanal offers with valid future dates
+        List<Map<String, Object>> defaults = new ArrayList<>();
+        Map<String, Object> o1 = new HashMap<>();
+        o1.put("id", "offer_001");
+        o1.put("_id", "offer_001");
+        o1.put("title", "Chef's Truffle Risotto Special");
+        o1.put("description", "Enjoy 20% off our signature creamy wild mushroom and black truffle risotto this week!");
+        o1.put("discount", "20% OFF");
+        o1.put("validUntil", java.time.LocalDate.now().plusDays(25).toString());
+        o1.put("valid_until", java.time.LocalDate.now().plusDays(25).toString());
+        o1.put("image", "https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?w=500&h=350&fit=crop");
+        o1.put("isActive", true);
+        o1.put("createdAt", LocalDateTime.now().toString());
+        o1.put("created_at", LocalDateTime.now().toString());
+
+        Map<String, Object> o2 = new HashMap<>();
+        o2.put("id", "offer_002");
+        o2.put("_id", "offer_002");
+        o2.put("title", "Morning Coffee & Pastry Pair");
+        o2.put("description", "Complimentary artisanal croissant with any double shot flat white or cappuccino.");
+        o2.put("discount", "Free Pastry");
+        o2.put("validUntil", java.time.LocalDate.now().plusDays(30).toString());
+        o2.put("valid_until", java.time.LocalDate.now().plusDays(30).toString());
+        o2.put("image", "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=500&h=350&fit=crop");
+        o2.put("isActive", true);
+        o2.put("createdAt", LocalDateTime.now().toString());
+        o2.put("created_at", LocalDateTime.now().toString());
+
+        defaults.add(o1);
+        defaults.add(o2);
+        saveOffersList(defaults);
+        return defaults;
     }
 
     private void saveOffersList(List<Map<String, Object>> list) {
@@ -57,10 +90,19 @@ public class TodaysOfferController {
         String id = offer.get("id") != null ? offer.get("id").toString() : "offer_" + System.currentTimeMillis();
         offer.put("id", id);
         offer.put("_id", id);
-        offer.put("created_at", LocalDateTime.now().toString());
-        offer.put("updated_at", LocalDateTime.now().toString());
+        String nowStr = LocalDateTime.now().toString();
+        offer.put("created_at", nowStr);
+        offer.put("createdAt", nowStr);
+        offer.put("updated_at", nowStr);
+        offer.put("updatedAt", nowStr);
+        if (offer.containsKey("validUntil") && !offer.containsKey("valid_until")) {
+            offer.put("valid_until", offer.get("validUntil"));
+        } else if (offer.containsKey("valid_until") && !offer.containsKey("validUntil")) {
+            offer.put("validUntil", offer.get("valid_until"));
+        }
         if (!offer.containsKey("isActive") && !offer.containsKey("is_active")) {
             offer.put("isActive", true);
+            offer.put("is_active", true);
         }
         list.add(offer);
         saveOffersList(list);
@@ -74,7 +116,11 @@ public class TodaysOfferController {
         for (Map<String, Object> item : list) {
             if (id.equals(item.get("id")) || id.equals(item.get("_id"))) {
                 item.putAll(updates);
-                item.put("updated_at", LocalDateTime.now().toString());
+                if (updates.containsKey("validUntil")) item.put("valid_until", updates.get("validUntil"));
+                if (updates.containsKey("valid_until")) item.put("validUntil", updates.get("valid_until"));
+                String nowStr = LocalDateTime.now().toString();
+                item.put("updated_at", nowStr);
+                item.put("updatedAt", nowStr);
                 found = item;
                 break;
             }

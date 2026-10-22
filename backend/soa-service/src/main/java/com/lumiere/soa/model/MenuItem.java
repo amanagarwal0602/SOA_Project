@@ -122,4 +122,68 @@ public class MenuItem {
     public String getUnderscoreId() {
         return id;
     }
+
+    @JsonProperty("isAvailable")
+    public boolean getIsAvailableCamel() {
+        return isAvailable;
+    }
+
+    @JsonProperty("isAvailable")
+    public void setIsAvailableCamel(boolean avail) {
+        this.isAvailable = avail;
+    }
+
+    @JsonProperty("isVeg")
+    public boolean getIsVegCamel() {
+        return isVeg;
+    }
+
+    @JsonProperty("isVeg")
+    public void setIsVegCamel(boolean veg) {
+        this.isVeg = veg;
+    }
+
+    @JsonProperty("showOnHomepage")
+    public boolean getShowOnHomepageCamel() {
+        return showOnHomepage;
+    }
+
+    @JsonProperty("showOnHomepage")
+    public void setShowOnHomepageCamel(boolean show) {
+        this.showOnHomepage = show;
+    }
+
+    @JsonProperty("ratingCount")
+    public int getRatingCountCamel() {
+        return ratingCount;
+    }
+
+    @JsonProperty("rating_count")
+    public int getRatingCountSnake() {
+        return ratingCount;
+    }
+
+    @JsonProperty("createdAt")
+    public String getCreatedAtAlias() {
+        return createdAt;
+    }
+
+    @JsonProperty("createdAt")
+    public void setCreatedAtAlias(String val) {
+        if (this.createdAt == null) {
+            this.createdAt = val;
+        }
+    }
+
+    @JsonProperty("updatedAt")
+    public String getUpdatedAtAlias() {
+        return updatedAt;
+    }
+
+    @JsonProperty("updatedAt")
+    public void setUpdatedAtAlias(String val) {
+        if (this.updatedAt == null) {
+            this.updatedAt = val;
+        }
+    }
 }

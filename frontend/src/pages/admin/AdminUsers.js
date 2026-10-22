@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
+import { formatSafeDate, formatSafeDateTime } from '../../utils/dateUtils';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -812,18 +813,12 @@ const AdminUsers = () => {
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <h3 className="font-semibold text-lg">
-                          Order #{order.dailyOrderNumber || order.daily_order_number || 'N/A'} - {
-                            order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Date unknown'
+                          Order #{order.dailyOrderNumber || order.daily_order_number || order.orderNumber || 'N/A'} - {
+                            formatSafeDate(order.createdAt || order.created_at, { month: 'short', day: 'numeric' })
                           }
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {order.createdAt ? new Date(order.createdAt).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          }) : 'Date unknown'}
+                          {formatSafeDateTime(order.createdAt || order.created_at)}
                         </p>
                       </div>
                       <div className="text-right">

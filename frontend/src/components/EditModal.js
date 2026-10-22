@@ -344,13 +344,13 @@ const EditModal = ({
                 <label className="block text-sm font-medium mb-2">Valid Until *</label>
                 <input
                   type="date"
-                  value={formData.validUntil?.split('T')[0] || data?.validUntil?.split('T')[0] || ''}
-                  onChange={(e) => setFormData({...formData, validUntil: e.target.value})}
+                  value={formData.validUntil?.split('T')[0] || data?.validUntil?.split('T')[0] || data?.valid_until?.split('T')[0] || ''}
+                  onChange={(e) => setFormData({...formData, validUntil: e.target.value, valid_until: e.target.value})}
                   className="input-field"
                   required
                 />
-                {data?.validUntil && !formData.validUntil && (
-                  <p className="text-xs text-gray-500 mt-1">Current: {new Date(data.validUntil).toLocaleDateString()}</p>
+                {(data?.validUntil || data?.valid_until) && !formData.validUntil && (
+                  <p className="text-xs text-gray-500 mt-1">Current: {new Date(data.validUntil || data.valid_until).toLocaleDateString()}</p>
                 )}
               </div>
             </div>

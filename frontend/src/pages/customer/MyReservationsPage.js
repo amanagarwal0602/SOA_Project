@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { FiX, FiStar } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { formatSafeDate, formatSafeDateTime } from '../../utils/dateUtils';
 
 const MyReservationsPage = () => {
   const { user } = useAuth();
@@ -108,10 +109,10 @@ const MyReservationsPage = () => {
                   <div>
                     <h3 className="font-semibold text-lg dark:text-gray-100">Reservation #{res.reservationNumber || (resId ? String(resId).slice(-6) : 'N/A')}</h3>
                     <p className="text-gray-600 dark:text-gray-400 mt-2">
-                      <span className="font-medium">Date:</span> {new Date(res.date).toLocaleDateString()}
+                      <span className="font-medium">Date:</span> {formatSafeDate(res.date, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }, res.date || 'Date TBD')}
                     </p>
                     <p className="text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Time:</span> {res.timeSlot || res.time_slot || res.time}
+                      <span className="font-medium">Time:</span> {res.timeSlot || res.time_slot || res.time || '7:00 PM'}
                     </p>
                     <p className="text-gray-600 dark:text-gray-400">
                       <span className="font-medium">Guests:</span> {res.guests || res.numberOfGuests || res.number_of_guests}
@@ -167,7 +168,7 @@ const MyReservationsPage = () => {
                     <p className="text-sm text-red-700 dark:text-red-300 mt-1">{res.cancellationReason}</p>
                     {res.cancelledAt && (
                       <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                        Cancelled on: {new Date(res.cancelledAt).toLocaleString()}
+                        Cancelled on: {formatSafeDateTime(res.cancelledAt)}
                       </p>
                     )}
                   </div>

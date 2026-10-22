@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { formatSafeDate } from '../../utils/dateUtils';
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -467,7 +468,7 @@ const AdminDashboard = () => {
                     {dateWiseSales.map((day) => (
                       <tr key={day.date} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {new Date(day.date).toLocaleDateString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                          {formatSafeDate(day.date, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }, day.date)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className="inline-flex items-center px-2.5 py-1 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-bold border border-purple-200 dark:border-purple-700 shadow-sm">
