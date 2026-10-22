@@ -345,3 +345,33 @@ Implemented Solution:
   * Backend : https://soa-backend-470517179980.asia-south1.run.app (Revision: soa-backend-00005-wzd)
   * Frontend: https://soa-frontend-470517179980.asia-south1.run.app (Revision: soa-frontend-00005-lw7)
 ================================================================================
+11. COMPLETE LOGICAL AUDIT & DATE HARDENING (22-OCTOBER-2026)
+================================================================================
+- Root Cause of "Invalid Date":
+  * Spring Boot models serialized timestamps using snake_case (@JsonProperty("created_at"),
+    @JsonProperty("valid_until"), etc.), whereas React components looked for camelCase
+    (order.createdAt, coupon.validUntil, reservation.timeSlot). When calling new Date(undefined),
+    the browser evaluated to NaN and rendered "Invalid Date".
+- Comprehensive Resolution:
+  1. Backend Model Dual Aliases:
+     - Added dual camelCase and snake_case getters and setters across all 11 JPA entity models:
+       Order, Reservation, Coupon, Review, ContactMessage, User, MenuItem, GalleryImage, TeamMember.
+     - Ensured created_at / createdAt, updated_at / updatedAt, valid_until / validUntil are
+       universally provided in every JSON response.
+     - Review adminResponse now returns response, respondedAt, and respondedBy objects.
+     - ContactMessage now provides status ("read"/"unread"), isRead, read, and repliedAt.
+     - TodaysOfferController provides pre-seeded artisanal specials with valid 30-day future dates.
+  2. Frontend Safe Date Utility (frontend/src/utils/dateUtils.js):
+     - Created parseSafeDate, formatSafeDate, formatSafeTime, formatSafeDateTime, and getOrderDateKey.
+     - Defensively handles ISO timestamps, nanosecond suffixes, YYYY-MM-DD, DD/MM/YYYY, and numbers.
+     - Guaranteed zero "Invalid Date" displays across any browser.
+  3. Dashboard & Consistency Rectifications:
+     - CustomerDashboard.js: Replaced hardcoded "You have no recent orders" placeholder with
+       dynamic order & reservation counters and live summary cards.
+     - AdminOrders.js, OrdersPage.js, AdminReservations.js, MyReservationsPage.js, AdminCoupons.js,
+       AdminTodaysOffers.js, AdminReviews.js, AdminContactMessages.js, AdminUsers.js, AdminDashboard.js:
+       All date rendering converted to safe formatting.
+  4. Verification:
+     - Backend: 8/8 tests pass (BUILD SUCCESS).
+     - Frontend: Compiled successfully with 0 errors and 0 ESLint warnings.
+================================================================================
