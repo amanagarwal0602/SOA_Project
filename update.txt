@@ -378,3 +378,29 @@ Implemented Solution:
      - Backend : https://soa-backend-470517179980.asia-south1.run.app (Revision: soa-backend-00006-vrr)
      - Frontend: https://soa-frontend-470517179980.asia-south1.run.app (Revision: soa-frontend-00006-6cx)
 ================================================================================
+12. 100% RECTIFICATION & LOGICAL CONSISTENCY AUDIT (22-OCTOBER-2026)
+================================================================================
+- Exhaustive search of all date-formatting routines across the entire React client:
+  1. AdminOrders.js:
+     - Fixed line 84: billDate now formatted safely using formatSafeDate(order.createdAt || order.created_at || order.date) instead of raw new Date().toDateString().
+     - Fixed line 124: printBill modal date formatted with formatSafeDate.
+     - Fixed line 173: dateFilter parses safely via parseSafeDate, preventing RangeError: Invalid time value when filtering orders by date.
+  2. AdminDashboard.js:
+     - getOrderDate(order) now checks order.createdAt || order.created_at || order.date || order.updatedAt || order.updated_at and runs parseSafeDate.
+     - getDateWiseSales() safely parses start and end dates and uses parseSafeDate in descending sort comparator.
+     - Verified payment separation: only paid/completed orders count towards today's sales, monthly sales, and total revenue; unverified orders with customer UTR numbers are highlighted in a prominent warning banner with 1-click verification link to Admin Orders.
+  3. AdminUsers.js:
+     - Fixed line 269: getUserOrders() now sorts user orders safely with parseSafeDate(order.createdAt || order.created_at || order.date) without NaN risks.
+     - getUserOrderValue() now aggregates both order.total and order.totalPrice aliases.
+  4. EditModal.js:
+     - Fixed line 353: Replaced raw new Date().toLocaleDateString() with formatSafeDate(data.validUntil || data.valid_until).
+  5. HomePage.js:
+     - Fixed line 388: Replaced raw review.rating repeat with Math.min(5, Math.max(0, Math.round(Number(review.rating) || 5))), preventing RangeError crashes if ratings contain floating numbers (e.g., 4.5).
+  6. Client Fallback Storage (localStorage.js & sheetdb.js):
+     - In localStorage.js lines 286-288 and 592-594, added defensive fallbacks (created_at || createdAt, valid_from || validFrom, valid_until || validUntil).
+     - In sheetdb.js lines 512-514, added dual-alias checking for coupon validation dates.
+- Zero raw un-safe toLocaleDateString remain in any component across the repository.
+- Verification:
+  * Frontend Build: Compiled successfully with 0 errors and 0 ESLint warnings.
+  * Git Commits: All changes committed to main branch.
+================================================================================
