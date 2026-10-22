@@ -404,3 +404,32 @@ Implemented Solution:
   * Frontend Build: Compiled successfully with 0 errors and 0 ESLint warnings.
   * Git Commits: All changes committed to main branch.
 ================================================================================
+13. LIVE RELATIONAL DATABASE TABLE INSPECTOR & FACULTY EVALUATION PORTAL (22-OCTOBER-2026)
+================================================================================
+- Created real-time, read-only database table explorer directly served at:
+  * https://soa-backend-470517179980.asia-south1.run.app/
+  * Endpoints: GET /, /db, /database, /tables, and JSON API at /api/db/all
+- Purpose:
+  * Allows academic faculty and evaluators to inspect all database tables in real-time
+    without needing manual SQL console configuration or credentials.
+  * View-only mode preserves data integrity while showcasing live transactional updates.
+- 11 Database Tables Inspected:
+  1. users: ID, Name, Email, BCrypt Password Hashes ($2a$10$...), Role, Phone, Active Status, Created At
+  2. menu_items: ID, Name, Category, Price, Veg/Non-Veg, Availability, Ratings, Homepage Status
+  3. orders: ID, Daily Order #, Customer, Total, Payment Status, UTR/Transaction ID, Status, Created At
+  4. reservations: ID, Guest Name, Email, Phone, Booking Date, Time Slot, Party Size, Status
+  5. reviews: ID, User, Star Rating, Title, Comment, Published Status, Homepage Flag
+  6. coupons: ID, Code, Discount Type, Value, Min Order, Valid From/Until, Active Status
+  7. contact_messages: ID, Customer Name, Email, Message Body, Read/Replied Status
+  8. gallery_images: ID, Title, Image URL, Category, Featured Status
+  9. features: ID, Title, Description, Icon Name
+  10. team_members: ID, Staff Name, Role, Image URL
+  11. books: Book ID, Book Name, Author, Price (Workbook Skill 6 & 7 Microservice)
+- Features:
+  * Live Auto-Refresh every 3 seconds with pulsating green connectivity pill.
+  * Instant table search filter across any column.
+  * Password hashes prominently highlighted in amber monospace badges with copy-to-clipboard.
+  * One-click JSON Modal to inspect full raw entity records.
+  * CSV Export for every database table.
+  * Quick links to live frontend app and Spring Boot Actuator/Health endpoints.
+================================================================================
