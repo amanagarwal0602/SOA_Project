@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
-import { formatSafeDate, formatSafeDateTime } from '../../utils/dateUtils';
+import { formatSafeDate, formatSafeDateTime, parseSafeDate } from '../../utils/dateUtils';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -120,7 +120,7 @@ const AdminUsers = () => {
     return orders
       .filter(order => order.user_id === userId || order.userId === userId)
       .filter(order => order.status !== 'cancelled')
-      .reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+      .reduce((sum, order) => sum + (parseFloat(order.total || order.totalPrice) || 0), 0);
   };
 
   // Filter and sort users
@@ -266,7 +266,11 @@ const AdminUsers = () => {
     if (!selectedUser) return [];
     return orders.filter(order => 
       (order.user_id === selectedUser.id || order.userId === selectedUser.id)
-    ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    ).sort((a, b) => {
+      const da = parseSafeDate(a.createdAt || a.created_at || a.date) || new Date(0);
+      const db = parseSafeDate(b.createdAt || b.created_at || b.date) || new Date(0);
+      return db - da;
+    });
   };
 
   const applyRoleTemplate = (role) => {

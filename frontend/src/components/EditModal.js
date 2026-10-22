@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import { formatSafeDate } from '../utils/dateUtils';
 
 /**
  * Universal Edit Modal for different content types
@@ -350,7 +351,7 @@ const EditModal = ({
                   required
                 />
                 {(data?.validUntil || data?.valid_until) && !formData.validUntil && (
-                  <p className="text-xs text-gray-500 mt-1">Current: {new Date(data.validUntil || data.valid_until).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-500 mt-1">Current: {formatSafeDate(data.validUntil || data.valid_until)}</p>
                 )}
               </div>
             </div>

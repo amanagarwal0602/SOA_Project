@@ -284,7 +284,8 @@ export const createOrder = async (orderData) => {
   // Calculate daily order number (day-wise reset)
   const today = new Date().toDateString();
   const todaysOrders = (data.orders || []).filter(order => {
-    const orderDate = new Date(order.created_at).toDateString();
+    const raw = order.created_at || order.createdAt;
+    const orderDate = raw ? new Date(raw).toDateString() : '';
     return orderDate === today;
   });
   const dailyOrderNumber = todaysOrders.length + 1;
@@ -590,8 +591,8 @@ export const validateCoupon = async (code) => {
   if (!coupon) throw new Error('Invalid coupon code');
   
   const now = new Date();
-  const validFrom = new Date(coupon.valid_from);
-  const validUntil = new Date(coupon.valid_until);
+  const validFrom = new Date(coupon.valid_from || coupon.validFrom || 0);
+  const validUntil = new Date(coupon.valid_until || coupon.validUntil || '2099-12-31');
   
   if (now < validFrom || now > validUntil) {
     throw new Error('Coupon has expired');

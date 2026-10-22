@@ -510,8 +510,8 @@ export const validateCoupon = async (code) => {
   if (!coupon.is_active) return { valid: false, message: 'Coupon is inactive' };
   
   const now = new Date();
-  if (new Date(coupon.valid_from) > now) return { valid: false, message: 'Coupon not yet valid' };
-  if (new Date(coupon.valid_until) < now) return { valid: false, message: 'Coupon has expired' };
+  if (new Date(coupon.valid_from || coupon.validFrom || 0) > now) return { valid: false, message: 'Coupon not yet valid' };
+  if (new Date(coupon.valid_until || coupon.validUntil || '2099-12-31') < now) return { valid: false, message: 'Coupon has expired' };
   
   if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
     return { valid: false, message: 'Coupon usage limit reached' };

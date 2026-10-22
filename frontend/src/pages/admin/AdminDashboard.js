@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
-import { formatSafeDate } from '../../utils/dateUtils';
+import { formatSafeDate, parseSafeDate } from '../../utils/dateUtils';
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -51,10 +51,8 @@ const AdminDashboard = () => {
   };
 
   const getOrderDate = (order) => {
-    const val = order?.createdAt || order?.created_at;
-    if (!val) return null;
-    const d = new Date(val);
-    return isNaN(d.getTime()) ? null : d;
+    const val = order?.createdAt || order?.created_at || order?.date || order?.updatedAt || order?.updated_at;
+    return parseSafeDate(val);
   };
 
   const isPaymentVerified = (order) => {
@@ -102,8 +100,8 @@ const AdminDashboard = () => {
 
   // Calculate date-wise sales (verified payments only)
   const getDateWiseSales = () => {
-    const start = new Date(dateFilter.startDate);
-    const end = new Date(dateFilter.endDate);
+    const start = parseSafeDate(dateFilter.startDate) || new Date(0);
+    const end = parseSafeDate(dateFilter.endDate) || new Date();
     end.setHours(23, 59, 59, 999);
     
     const filteredOrders = orders.filter(order => {
@@ -127,7 +125,11 @@ const AdminDashboard = () => {
     
     return Object.entries(salesByDate)
       .map(([date, data]) => ({ date, ...data }))
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
+      .sort((a, b) => {
+        const da = parseSafeDate(a.date) || new Date(0);
+        const db = parseSafeDate(b.date) || new Date(0);
+        return db - da;
+      });
   };
 
   // Calculate product-wise sales from orders and menu items

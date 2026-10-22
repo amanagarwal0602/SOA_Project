@@ -81,7 +81,7 @@ const AdminOrders = () => {
       const ordersWithBillDate = ordersData.map(order => ({
         ...order,
         dailyBillNumber: order.dailyOrderNumber || order.daily_order_number || 0,
-        billDate: new Date(order.createdAt).toDateString()
+        billDate: formatSafeDate(order.createdAt || order.created_at || order.date)
       }));
       
       setOrders(ordersWithBillDate);
@@ -121,7 +121,7 @@ const AdminOrders = () => {
   const printBill = (order) => {
     if (!order) return;
     const printContent = billRef.current;
-    const orderDate = new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const orderDate = formatSafeDate(order.createdAt || order.created_at || order.date, { month: 'short', day: 'numeric', year: 'numeric' });
     const windowPrint = window.open('', '', 'width=800,height=600');
     windowPrint.document.write('<html><head><title>Order #' + order.dailyBillNumber + ' - ' + orderDate + '</title>');
     windowPrint.document.write('<style>');
@@ -170,7 +170,9 @@ const AdminOrders = () => {
     
     // Apply date filter
     if (dateFilter) {
-      const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+      const parsed = parseSafeDate(order.createdAt || order.created_at || order.date);
+      if (!parsed) return false;
+      const orderDate = parsed.toISOString().split('T')[0];
       if (orderDate !== dateFilter) {
         return false;
       }

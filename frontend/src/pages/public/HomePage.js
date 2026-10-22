@@ -385,7 +385,10 @@ const HomePage = () => {
                         <div>
                           <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{review.user?.name || review.userName || 'Guest'}</h4>
                           <div className="text-yellow-400 text-xs">
-                            {'★'.repeat(review.rating || 5)}{'☆'.repeat(5 - (review.rating || 5))}
+                            {(() => {
+                              const r = Math.min(5, Math.max(0, Math.round(Number(review.rating) || 5)));
+                              return '★'.repeat(r) + '☆'.repeat(5 - r);
+                            })()}
                           </div>
                         </div>
                       </div>
