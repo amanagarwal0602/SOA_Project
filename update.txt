@@ -374,4 +374,7 @@ Implemented Solution:
   4. Verification:
      - Backend: 8/8 tests pass (BUILD SUCCESS).
      - Frontend: Compiled successfully with 0 errors and 0 ESLint warnings.
+  5. Live Revisions Deployed to Google Cloud Run (asia-south1):
+     - Backend : https://soa-backend-470517179980.asia-south1.run.app (Revision: soa-backend-00006-vrr)
+     - Frontend: https://soa-frontend-470517179980.asia-south1.run.app (Revision: soa-frontend-00006-6cx)
 ================================================================================
